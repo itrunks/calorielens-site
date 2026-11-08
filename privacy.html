@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Privacy policy — CalorieLens</title>
+<meta name="description" content="How CalorieLens uses your data: meal photos, diet plans, cycle tracking, health data and more.">
+<script>try{const t=localStorage.getItem('cl-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!--
+  Ported from the draft on the apps/vibrant-volta-hxo5ph branch (website/src/privacy.tsx).
+  That draft says every statement was checked against the app and backend code on 2026-11-01,
+  and that items marked "at launch" must be true before this is published. Have it reviewed before release.
+-->
+<style>
+:root{--bg:#f4f6f1;--paper:#fff;--ink:#0b0f0c;--muted:#4f5851;--line:rgba(11,15,12,.1);--green:#15803d;--warn-bg:#fff7e0;--warn-ink:#6b4a00;--warn-line:#f1d48a;color-scheme:light;
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b0f0c;--paper:#141a16;--ink:#eef2ee;--muted:#a3ada6;--line:rgba(255,255,255,.1);--green:#34c26e;--warn-bg:#2a2210;--warn-ink:#f3d58a;--warn-line:#5a4716;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0b0f0c;--paper:#141a16;--ink:#eef2ee;--muted:#a3ada6;--line:rgba(255,255,255,.1);--green:#34c26e;--warn-bg:#2a2210;--warn-ink:#f3d58a;--warn-line:#5a4716;color-scheme:dark}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:17px/1.65 var(--display);-webkit-font-smoothing:antialiased}
+a{color:var(--green)}
+header{border-bottom:1px solid var(--line);background:var(--paper)}
+.bar{max-width:760px;margin:0 auto;padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;color:var(--ink);text-decoration:none}
+.brand img{width:32px;height:32px;border-radius:9px}
+.back{color:var(--muted);text-decoration:none;font-size:15px;min-height:44px;display:flex;align-items:center}
+.back:hover{color:var(--ink)}
+main{max-width:760px;margin:0 auto;padding:40px 16px 90px}
+.draft{background:var(--warn-bg);color:var(--warn-ink);border:1px solid var(--warn-line);border-radius:16px;padding:12px 16px;font-size:15px;font-weight:600}
+h1{font-size:clamp(36px,6vw,52px);line-height:1.05;letter-spacing:-.03em;margin-top:32px}
+.date{font:13px var(--mono);color:var(--muted);margin-top:10px}
+.intro{font-size:19px;color:var(--muted);margin-top:22px}
+section{margin-top:40px}
+h2{font-size:24px;letter-spacing:-.02em;line-height:1.2}
+section p,section ul{margin-top:12px;color:var(--muted)}
+section ul{padding-left:22px}
+section li{margin-top:6px}
+strong{color:var(--ink)}
+.todo{font-style:italic}
+footer{border-top:1px solid var(--line);padding:24px 16px;text-align:center;font:12px var(--mono);color:var(--muted)}
+</style>
+</head>
+<body>
+<header><div class="bar"><a class="brand" href="./"><img src="favicon.svg" alt="" width="32" height="32">CalorieLens</a><a class="back" href="./">← Back to home</a></div></header>
+<main>
+  <p class="draft">Draft for review. This policy is not in effect yet and will be finalised before the app launches.</p>
+  <h1>Privacy policy</h1>
+  <p class="date">Last updated: draft of 1 November 2026</p>
+  <p class="intro">CalorieLens helps you track what you eat. This policy explains what information the app uses, where it goes, and the choices you have. In short: we use your data to run the app, we don't sell it, and we don't show ads.</p>
+
+  <section id="photos"><h2>Meal photos and descriptions</h2>
+    <p>When you scan a meal, the app sends the photo to our server, which passes it to our AI provider, <strong>Anthropic</strong> (the Claude model), to estimate the foods, calories and macros. The result comes straight back to your phone.</p>
+    <ul>
+      <li>We don't store meal photos on our servers, and we don't use them for ads.</li>
+      <li>When you correct an estimate (for example "it was 2 slices"), the earlier estimate and your correction are sent the same way.</li>
+      <li>Anthropic processes this data under its commercial terms, which don't allow it to train its models on it. It may keep requests for a limited time for safety and abuse monitoring.</li>
+    </ul>
+  </section>
+
+  <section id="diet-plan"><h2>Diet Plan</h2>
+    <p>To write a weekly plan, the app sends: your diet type, the place you live (as you typed it), your daily calorie target, foods you prefer or have available, any allergies you entered, the app language, and from the second week the names of meals you followed or skipped. This goes to our server and Anthropic in the same way as meal photos.</p>
+    <p><strong>Your cycle data is never part of a Diet Plan request.</strong></p>
+  </section>
+
+  <section id="cycle"><h2>Cycle tracking</h2>
+    <p>Cycle tracking is optional and off until you agree to it on its own consent screen.</p>
+    <ul>
+      <li>Period dates are saved only on your device. They are never sent to our servers or to our AI.</li>
+      <li>They're left out of phone backups, so a new phone starts empty.</li>
+      <li>You can delete all cycle data at any time, in one tap.</li>
+    </ul>
+  </section>
+
+  <section id="health"><h2>Apple Health and Health Connect</h2>
+    <p>If you connect it, CalorieLens <strong>reads</strong> your active energy (calories burned) to show your balance for the day. It doesn't write anything to Apple Health or Health Connect, and this data stays on your device. We never use health data for advertising.</p>
+  </section>
+
+  <section id="barcode"><h2>Barcode scanning</h2>
+    <p>When you scan a barcode, the app looks up the product number in <strong>Open Food Facts</strong>, a free public food database. Only the barcode number is sent; Open Food Facts sees the request as any website would, including your IP address.</p>
+  </section>
+
+  <section id="voice"><h2>Voice input</h2>
+    <p>Voice input uses your phone's own speech recognition. On iPhone, audio may be sent to Apple to turn it into text unless your device can do this offline. On Android, it goes to your phone's speech service (often Google). Only the resulting text is used by CalorieLens.</p>
+  </section>
+
+  <section id="device"><h2>What stays on your phone</h2>
+    <p>Your meals, weight, goals and settings are stored on your device. The camera is used only while you're scanning.</p>
+  </section>
+
+  <section id="account"><h2>Your account and backup (at launch)</h2>
+    <p>You can sign in with Apple, Google or email. If you do, your meals, weight, goals and settings are backed up to our cloud database (Google Firebase) so you can restore them on a new phone. Each account can reach only its own data. Meal photos and cycle data are not backed up.</p>
+    <p>You can delete your account and its backup from the app at any time.</p>
+  </section>
+
+  <section id="purchases"><h2>Subscriptions</h2>
+    <p>Purchases are handled by the App Store or Google Play. We receive whether your subscription is active, never your card or payment details.</p>
+  </section>
+
+  <section id="services"><h2>Services we use</h2>
+    <ul>
+      <li><strong>Google Firebase / Google Cloud</strong>: runs our server and, at launch, sign-in and backup.</li>
+      <li><strong>Anthropic</strong>: the AI that estimates meals and writes Diet Plans.</li>
+      <li><strong>Open Food Facts</strong>: barcode lookups.</li>
+      <li><strong>Apple and Google</strong>: app stores, payments, notifications and speech recognition.</li>
+      <li class="todo">[To be confirmed before launch: the crash reporting and analytics service, if any.]</li>
+    </ul>
+    <p>We don't sell your personal data or share it with advertisers.</p>
+  </section>
+
+  <section id="rights"><h2>Your choices and rights</h2>
+    <ul>
+      <li>See, correct or delete your data in the app, or ask us by email.</li>
+      <li>Turn off Health access, cycle tracking, notifications or microphone access at any time in the app or your phone's settings.</li>
+      <li>Withdraw consent at any time. This doesn't affect anything done before.</li>
+    </ul>
+    <p>We'll reply within 30 days.</p>
+  </section>
+
+  <section id="children"><h2>Children</h2>
+    <p>CalorieLens is not meant for children. <span class="todo">[Minimum age to be confirmed before launch.]</span> Calorie targets are not suitable for children or during pregnancy without medical advice.</p>
+  </section>
+
+  <section id="not-medical"><h2>Not medical advice</h2>
+    <p>Estimates and meal plans come from AI and can be wrong. Always check ingredients yourself if you have an allergy. Cycle dates are calendar estimates and must not be used for birth control or to plan or avoid pregnancy.</p>
+  </section>
+
+  <section id="changes"><h2>Changes and contact</h2>
+    <p>If we change this policy, we'll update the date above and tell you in the app about important changes.</p>
+    <p class="todo">[To be added before launch: a support email address, the legal name and address of the developer, and a grievance contact as required in India.]</p>
+  </section>
+</main>
+<footer>© 2026 CalorieLens</footer>
+</body>
+</html>
