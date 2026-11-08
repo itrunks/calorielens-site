@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="24 24 60 60">
+  <!-- The CalorieLens app icon (androidApp/src/main/res/drawable/ic_launcher_foreground.xml on the brand green): viewfinder corners around a fork and knife. -->
+  <rect x="24" y="24" width="60" height="60" rx="14" fill="#21B366"/>
+  <path d="M34,44 V38 Q34,34 38,34 H44 M64,34 H70 Q74,34 74,38 V44 M74,64 V70 Q74,74 70,74 H64 M44,74 H38 Q34,74 34,70 V64" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+  <path d="M47,42 h2 v8 h1.5 v-8 h2 v8 h1.5 v-8 h2 v10 q0,3 -3,3.5 v11.5 h-3 v-11.5 q-3,-0.5 -3,-3.5 z M60,42 q4,1 4,10 v4 h-1.5 v10.5 h-3 z" fill="#fff"/>
+</svg>

@@ -6,6 +6,8 @@
 <title>CalorieLens — snap your plate, know your day</title>
 <meta name="description" content="CalorieLens is an AI calorie tracker for iPhone and Android. Snap a meal, watch the ingredients appear, fix it in plain words.">
 <meta name="theme-color" content="#0b0f0c">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -41,7 +43,7 @@ section{position:relative}
   border:1px solid rgba(255,255,255,.8);box-shadow:0 10px 30px -18px rgba(11,15,12,.35);transition:background .3s}
 .nav.dark{background:rgba(20,26,22,.6);border-color:rgba(255,255,255,.08);color:#f2f5f1}
 .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:19px;letter-spacing:-.02em}
-.brand svg{width:26px;height:26px}
+.brand img{width:32px;height:32px;border-radius:9px}
 .nav ul{display:flex;gap:26px;list-style:none;font-size:15px;color:inherit}
 .nav ul a{opacity:.72;transition:opacity .2s}.nav ul a:hover{opacity:1}
 .btn{display:inline-flex;align-items:center;gap:10px;min-height:46px;padding:0 22px;border-radius:99px;background:var(--ink);color:#fff;font-weight:600;font-size:15px;transition:transform .3s var(--ease),background .3s}
@@ -68,6 +70,18 @@ section{position:relative}
 .hero .ctas{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}
 .stores{display:flex;gap:18px;margin-top:22px;font:13px var(--mono);color:var(--muted);flex-wrap:wrap}
 .stores span{display:inline-flex;gap:8px;align-items:center}
+/* official store badges: Apple SVG has no padding, Google PNG has a transparent margin, so it is sized up and pulled in */
+.badges{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:26px}
+/* .store-badge, not .badge: .badge is already the chart's "▼ kg" pill */
+.store-badge{position:relative;display:inline-flex;align-items:center;border-radius:10px;transition:transform .3s var(--ease)}
+.store-badge:hover{transform:translateY(-2px)}
+.store-badge img{display:block;max-width:none}
+.store-badge.apple img{height:48px;width:auto}
+.store-badge.play .clip{display:block;height:48px;overflow:hidden;border-radius:9px}
+.store-badge.play img{height:71px;width:auto;margin:0 -9px}
+.store-badge .soon{position:absolute;top:-10px;right:-8px;font:600 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;background:var(--green);color:#fff;padding:3px 7px;border-radius:99px;white-space:nowrap}
+.store-badge.live .soon{display:none}
+.cta .badges{justify-content:center;margin-top:30px}
 .stores svg{width:16px;height:16px}
 
 /* name runs behind the phone */
@@ -331,7 +345,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
 <!-- ============ NAV ============ -->
 <nav class="nav" id="nav" aria-label="Main">
   <a href="#top" class="brand" aria-label="CalorieLens home">
-    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 29V15" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M16 17c-6 0-9-4-9-10 4 0 7 2 9 5 2-3 5-5 9-5 0 6-3 10-9 10Z" fill="var(--green)"/><path d="M16 12c-1.5-2-1.5-5 0-8 1.5 3 1.5 6 0 8Z" fill="var(--green)"/></svg>
+    <img src="favicon.svg" alt="" width="32" height="32">
     CalorieLens
   </a>
   <ul>
@@ -358,6 +372,10 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
         <a href="#get" class="btn green">Get early access →</a>
         <a href="#scan" class="btn ghost">See a scan</a>
       </div>
+      <div class="rv d3"><div class="badges">
+        <a class="store-badge apple" href="#get" data-store="ios" aria-label="Download on the App Store, coming soon"><img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store" width="144" height="48"><span class="soon">Soon</span></a>
+        <a class="store-badge play" href="#get" data-store="android" aria-label="Get it on Google Play, coming soon"><span class="clip"><img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" width="184" height="71"></span><span class="soon">Soon</span></a>
+      </div></div>
       <div class="stores rv d3">
         <span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.8 1.2 1.8 2.6 3.1 2.6 1.3-.1 1.7-.8 3.3-.8 1.5 0 1.9.8 3.3.8s2.2-1.2 3-2.5c1-1.4 1.3-2.8 1.4-2.8-.1 0-2.4-.9-2.4-4.2ZM13.9 4.9c.7-.8 1.2-2 1-3.1-1 0-2.2.7-2.9 1.5-.6.7-1.2 1.9-1 3 1.1.1 2.2-.6 2.9-1.4Z"/></svg>iOS 18+</span>
         <span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.6 9.5 19.3 6.6a.4.4 0 0 0-.7-.4l-1.7 3a10.5 10.5 0 0 0-9.8 0l-1.7-3a.4.4 0 1 0-.7.4l1.7 2.9A9.8 9.8 0 0 0 1.5 17h21a9.8 9.8 0 0 0-4.9-7.5ZM7 14.3a.9.9 0 1 1 0-1.8.9.9 0 0 1 0 1.8Zm10 0a.9.9 0 1 1 0-1.8.9.9 0 0 1 0 1.8Z"/></svg>Android 8+</span>
@@ -366,7 +384,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
     </div>
     <div class="phone-stage" id="heroStage">
       <div class="phone" id="heroPhone"><img src="assets/home.jpg" alt="CalorieLens home screen: 730 of 2,000 calories eaten, macro rings, and recently logged Masala Dosa and Idli with Sambar" width="506" height="1100" fetchpriority="high"></div>
-      <div class="chip c1" data-d="26"><span class="dot" style="background:#ffe7d6">🥞</span><span><b>Masala Dosa</b><small>410 kcal · 12:00 PM</small></span></div>
+      <div class="chip c1" data-d="26"><span class="dot" style="background:#ffe7d6">🍝</span><span><b>Pasta primavera</b><small>480 kcal · 1:10 PM</small></span></div>
       <div class="chip c2" data-d="40"><span class="dot" style="background:#fde2e2">🍗</span><span><b>20 g protein</b><small>of 120 g today</small></span></div>
       <div class="chip c3" data-d="18"><span class="dot" style="background:#dff3e6">✓</span><span><b>1,270 left</b><small>on your 2,000 goal</small></span></div>
       <div class="chip c4" data-d="34"><span class="dot" style="background:#ffedd5">🔥</span><span><b>6-day streak</b><small>keep it going</small></span></div>
@@ -376,7 +394,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
 
 <!-- ============ 2. STRIP ============ -->
 <div class="strip" aria-hidden="true"><div class="track" id="strip">
-  <span>Photo scan</span><span>Barcode lookup</span><span>Fix in plain words</span><span>Macro rings</span><span>Weight progress</span><span>Diet plans</span><span>Meal reminders</span><span>Home &amp; Lock Screen widgets</span><span>Apple Health &amp; Health Connect</span><span>Dark mode</span>
+  <span>Photo scan</span><span>Any cuisine: tacos to tagine, ramen to risotto</span><span>Barcode lookup</span><span>Fix in plain words</span><span>Macro rings</span><span>Weight progress</span><span>Diet plans</span><span>Meal reminders</span><span>Home &amp; Lock Screen widgets</span><span>Apple Health &amp; Health Connect</span><span>Dark mode</span>
 </div></div>
 
 <!-- ============ 3. SCAN (pinned) ============ -->
@@ -546,8 +564,8 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
         <h3>Eaten vs burned</h3><p>Reads active energy from Apple Health or Health Connect and puts it next to what you ate.</p>
       </div>
       <div class="tile t-plan rv d2">
-        <div class="plan-mini" aria-hidden="true"><div><span>Idli with sambar</span><span>320 cal</span></div><div><span>Lemon rice with curd</span><span>420 cal</span></div><div><span>Roasted chana</span><span>230 cal</span></div></div>
-        <h3>Weekly diet plans</h3><p>Seven days of meals from foods you like and can actually buy. Tick what you ate; next week keeps those.</p>
+        <div class="plan-mini" aria-hidden="true"><div><span>Avocado toast &amp; egg</span><span>340 cal</span></div><div><span>Chicken stir-fry with rice</span><span>480 cal</span></div><div><span>Hummus &amp; veggies</span><span>220 cal</span></div></div>
+        <h3>Weekly diet plans</h3><p>Seven days of meals from any cuisine, built from foods you like and can buy where you live. Tick what you ate; next week keeps those.</p>
       </div>
     </div>
   </div>
@@ -565,6 +583,10 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
       <input id="email" type="email" required placeholder="you@example.com" autocomplete="email" style="min-height:52px;padding:0 20px;border-radius:99px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff;font:inherit;font-size:16px;width:min(320px,100%)">
       <button class="btn green" style="min-height:52px">Notify me</button>
     </form>
+    <div class="badges">
+        <a class="store-badge apple" href="#get" data-store="ios" aria-label="Download on the App Store, coming soon"><img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store" width="144" height="48"><span class="soon">Soon</span></a>
+        <a class="store-badge play" href="#get" data-store="android" aria-label="Get it on Google Play, coming soon"><span class="clip"><img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" width="184" height="71"></span><span class="soon">Soon</span></a>
+      </div>
   </div>
   <div class="wordmark" aria-hidden="true">CalorieLens</div>
 </section>
@@ -577,6 +599,10 @@ const finePointer=matchMedia('(hover:hover) and (pointer:fine)').matches;
 const EASE='cubic-bezier(.22,1,.36,1)';
 const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
 const fmt=n=>Math.round(n).toLocaleString('en-US');
+
+/* ---------- store links: set these at launch; until then the badges scroll to the email form ---------- */
+const STORE_URLS={ios:'',android:''};
+$$('.store-badge').forEach(b=>{const url=STORE_URLS[b.dataset.store];if(!url)return;b.href=url;b.target='_blank';b.rel='noopener';b.classList.add('live');b.setAttribute('aria-label',b.querySelector('img').alt)});
 
 /* ---------- headline focus reveal ---------- */
 (function(){const h=$('#headline');const walk=n=>{[...n.childNodes].forEach(c=>{if(c.nodeType===3){const f=document.createDocumentFragment();
@@ -626,7 +652,7 @@ function scanUpdate(){
   // 1: sheet up, items stream in
   const up=p>=.2;sheet.classList.toggle('up',up);$('#finder').style.opacity=up?0:1;$('#shutter').style.opacity=up?0:1;$('#camTop').style.opacity=up?0:1;
   const shown=!up?0:p<.26?0:p<.3?1:p<.34?2:p<.38?3:4;
-  // 2: fix dialog types "It was 4 idlis"
+  // 2: fix dialog types the correction
   const typed='It had tahini dressing';const tp=clamp((p-.52)/.16);const fixOn=p>=.5&&p<.72;fixbox.classList.toggle('on',fixOn);
   fixfield.textContent=typed.slice(0,Math.round(tp*typed.length));
   const fixed=p>=.72;$('#logged').classList.toggle('on',stage===3&&p>=.84);
