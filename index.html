@@ -1,0 +1,748 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CalorieLens — snap your plate, know your day</title>
+<meta name="description" content="CalorieLens is an AI calorie tracker for iPhone and Android. Snap a meal, watch the ingredients appear, fix it in plain words.">
+<meta name="theme-color" content="#0b0f0c">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f6f1; --paper:#ffffff; --ink:#0b0f0c; --muted:#5d665f; --line:rgba(11,15,12,.09);
+  --green:#15803d; --green-2:#34c26e; /* --green passes 4.5:1 on white and on --bg; --green-2 is for dark backgrounds */ --green-soft:#dff3e6;
+  --protein:#ef4444; --carbs:#f59e0b; --fats:#3b82f6; --flame:#f97316;
+  --night:#0b0f0c; --night-2:#141a16;
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+  --radius:28px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--display);font-optical-sizing:auto;-webkit-font-smoothing:antialiased;overflow-x:clip} /* clip, not hidden: hidden makes body a scroller and breaks position:sticky */
+img{display:block;max-width:100%}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:3px solid var(--green);outline-offset:3px;border-radius:8px}
+.wrap{max-width:1232px;padding-inline:16px;margin-inline:auto} /* same 1200px column + 16px gutter, as plain padding */
+.eyebrow{font:500 12px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--green);display:inline-flex;gap:10px;align-items:center}
+.eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 0 4px color-mix(in srgb,currentColor 18%,transparent)}
+h2{font:700 clamp(38px,5.4vw,72px)/.98 var(--display);letter-spacing:-.035em;margin:18px 0 18px}
+h2 em{font-style:normal;color:var(--green)}
+.lead{font-size:clamp(17px,1.4vw,20px);line-height:1.55;color:var(--muted);max-width:560px}
+section{position:relative}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- NAV ---------- */
+.nav{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:50;width:min(1200px,100% - 24px);display:flex;align-items:center;justify-content:space-between;
+  padding:10px 10px 10px 18px;border-radius:99px;background:rgba(255,255,255,.62);backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);
+  border:1px solid rgba(255,255,255,.8);box-shadow:0 10px 30px -18px rgba(11,15,12,.35);transition:background .3s}
+.nav.dark{background:rgba(20,26,22,.6);border-color:rgba(255,255,255,.08);color:#f2f5f1}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:19px;letter-spacing:-.02em}
+.brand svg{width:26px;height:26px}
+.nav ul{display:flex;gap:26px;list-style:none;font-size:15px;color:inherit}
+.nav ul a{opacity:.72;transition:opacity .2s}.nav ul a:hover{opacity:1}
+.btn{display:inline-flex;align-items:center;gap:10px;min-height:46px;padding:0 22px;border-radius:99px;background:var(--ink);color:#fff;font-weight:600;font-size:15px;transition:transform .3s var(--ease),background .3s}
+.btn:hover{transform:translateY(-2px)}
+.btn.ghost{background:transparent;color:inherit;border:1px solid currentColor}
+.btn.green{background:var(--green);color:#fff}
+.nav .btn{min-height:42px}
+@media (max-width:820px){.nav ul{display:none}}
+
+/* ---------- HERO ---------- */
+.hero{min-height:100svh;display:grid;align-items:center;overflow:hidden;padding:120px 0 60px}
+.mesh{position:absolute;inset:-10%;filter:blur(70px);opacity:.55;pointer-events:none}
+.mesh i{position:absolute;border-radius:50%;animation:drift 20s var(--ease) infinite alternate}
+.mesh i:nth-child(1){width:46vw;height:46vw;left:-6%;top:-10%;background:#9fe3b8}
+.mesh i:nth-child(2){width:34vw;height:34vw;right:4%;top:6%;background:#ffd59a;animation-duration:24s;animation-delay:-8s}
+.mesh i:nth-child(3){width:30vw;height:30vw;left:38%;bottom:-14%;background:#b9d4ff;animation-duration:28s;animation-delay:-14s}
+@keyframes drift{50%{transform:translate(6vw,-5vh) scale(1.15)}100%{transform:translate(-5vw,6vh) scale(.92)}}
+.grain{position:absolute;inset:0;opacity:.07;pointer-events:none;mix-blend-mode:multiply;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.hero-grid{position:relative;z-index:3;display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center}
+.hero h1{font:800 clamp(48px,7.2vw,104px)/.92 var(--display);letter-spacing:-.045em;margin:20px 0 22px}
+.hero h1 .accent{color:var(--green)}
+.focus .w{display:inline-block;filter:blur(12px);opacity:0;transform:translateY(14px);transition:filter 1s var(--ease),opacity 1s var(--ease),transform 1s var(--ease)}
+.focus.in .w{filter:none;opacity:1;transform:none}
+.hero .ctas{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}
+.stores{display:flex;gap:18px;margin-top:22px;font:13px var(--mono);color:var(--muted);flex-wrap:wrap}
+.stores span{display:inline-flex;gap:8px;align-items:center}
+.stores svg{width:16px;height:16px}
+
+/* name runs behind the phone */
+.behind{position:absolute;z-index:1;top:50%;left:0;white-space:nowrap;transform:translateY(-40%);pointer-events:none;
+  font:800 clamp(120px,17vw,260px)/1 var(--display);letter-spacing:-.05em;color:rgba(11,15,12,.055)}
+.behind .track{display:inline-block;animation:run 40s linear infinite}
+@keyframes run{to{transform:translateX(-50%)}}
+
+.phone-stage{position:relative;height:min(78vh,700px);display:grid;place-items:center}
+.phone{position:relative;width:min(300px,62vw);aspect-ratio:506/1100;border-radius:46px;padding:10px;background:#0d0f0e;
+  box-shadow:0 0 0 2px #2a2e2c,0 50px 90px -30px rgba(11,40,22,.55),0 18px 30px -18px rgba(0,0,0,.4);will-change:transform}
+.phone::before{content:"";position:absolute;top:18px;left:50%;width:92px;height:26px;transform:translateX(-50%);border-radius:20px;background:#0d0f0e;z-index:2}
+.phone img{width:100%;height:100%;object-fit:cover;border-radius:37px}
+.hero .phone{animation:bob 7s ease-in-out infinite}
+@keyframes bob{50%{translate:0 -14px}}
+.chip{position:absolute;z-index:4;display:flex;gap:10px;align-items:center;padding:12px 16px;border-radius:18px;background:rgba(255,255,255,.72);
+  backdrop-filter:blur(16px) saturate(170%);-webkit-backdrop-filter:blur(16px) saturate(170%);border:1px solid rgba(255,255,255,.9);
+  box-shadow:0 18px 40px -22px rgba(11,40,22,.45);font-size:14px;transition:transform .3s ease-out;white-space:nowrap}
+.chip b{font-weight:700}
+.chip small{display:block;font:11px var(--mono);color:var(--muted)}
+.chip .dot{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;font-size:16px}
+.c1{left:-4%;top:16%}.c2{right:-6%;top:34%}.c3{left:2%;bottom:16%}.c4{right:0;bottom:6%}
+@media (max-width:900px){
+  .hero-grid{grid-template-columns:1fr;text-align:left}
+  .phone-stage{height:560px}
+  .c1{left:0}.c2{right:0}.c3{left:0}
+}
+
+/* ---------- MARQUEE STRIP ---------- */
+.strip{border-block:1px solid var(--line);background:var(--paper);overflow:hidden;padding:18px 16px}
+.strip .track{display:inline-flex;gap:46px;white-space:nowrap;animation:run 50s linear infinite;font:500 18px var(--display);color:var(--muted)}
+.strip .track span::after{content:"✦";margin-left:46px;color:var(--green);font-size:12px;vertical-align:middle}
+.strip:hover .track{animation-play-state:paused}
+
+/* ---------- SCAN (pinned, dark) ---------- */
+.scan{height:420vh;background:var(--night);color:#eef2ee}
+.scan .pin{position:sticky;top:0;height:100svh;overflow:hidden;display:grid;align-items:center}
+.scan .pin::before{content:"";position:absolute;inset:0;background:radial-gradient(60% 50% at 70% 50%,rgba(52,194,110,.16),transparent 70%)}
+.scan-grid{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.steps{position:relative;min-height:360px}
+.step{position:absolute;inset:0;opacity:0;transform:translateY(30px);transition:opacity .6s var(--ease),transform .6s var(--ease);pointer-events:none}
+.step.on{opacity:1;transform:none;pointer-events:auto}
+.step .num{font:500 13px var(--mono);color:var(--green-2);letter-spacing:.14em;text-transform:uppercase}
+.step h2{color:#fff}
+.step h2 em{color:var(--green-2)}
+.step p{color:#a9b3ab;font-size:19px;line-height:1.55;max-width:470px}
+.progress-dots{display:flex;gap:8px;margin-top:34px}
+.progress-dots i{width:34px;height:4px;border-radius:4px;background:rgba(255,255,255,.14);overflow:hidden;position:relative}
+.progress-dots i b{position:absolute;inset:0;background:var(--green-2);transform-origin:left;transform:scaleX(0)}
+.scan .phone{width:min(320px,70vw);background:#000}
+.screen{position:relative;width:100%;height:100%;border-radius:37px;overflow:hidden;background:#000;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif}
+.cam{position:absolute;inset:0;display:grid;place-items:center;transition:transform 1s var(--ease)}
+.cam img.food{width:100%;height:100%;object-fit:cover}
+.finder{position:absolute;inset:26% 12% 34%;pointer-events:none;transition:opacity .5s}
+.finder i{position:absolute;width:38px;height:38px;border:4px solid #fff}
+.finder i:nth-child(1){left:0;top:0;border-right:0;border-bottom:0;border-top-left-radius:18px}
+.finder i:nth-child(2){right:0;top:0;border-left:0;border-bottom:0;border-top-right-radius:18px}
+.finder i:nth-child(3){left:0;bottom:0;border-right:0;border-top:0;border-bottom-left-radius:18px}
+.finder i:nth-child(4){right:0;bottom:0;border-left:0;border-top:0;border-bottom-right-radius:18px}
+.scanline{position:absolute;left:4%;right:4%;height:3px;top:0;border-radius:3px;background:linear-gradient(90deg,transparent,#7dffb0,transparent);box-shadow:0 0 18px 2px rgba(125,255,176,.6);opacity:0}
+.cam-top{position:absolute;top:44px;left:0;right:0;text-align:center;color:#fff;font-weight:600;font-size:15px}
+.shutter{position:absolute;bottom:34px;left:50%;width:66px;height:66px;margin-left:-33px;border-radius:50%;border:4px solid #fff;background:rgba(255,255,255,.25);transition:opacity .4s}
+.sheet{position:absolute;left:0;right:0;bottom:0;height:72%;background:#fff;color:#111;border-radius:28px 28px 0 0;padding:20px 18px;transform:translateY(102%);transition:transform .8s var(--ease)}
+.sheet.up{transform:none}
+.sheet .sheet-title{font-size:19px;font-weight:700;line-height:1.15;margin-bottom:12px}
+.kcal{display:flex;align-items:center;gap:12px;border:1px solid #e6e6e6;border-radius:16px;padding:10px 14px;margin-bottom:10px}
+.kcal .ico{width:34px;height:34px;border-radius:50%;background:#f2f2f2;display:grid;place-items:center}
+.kcal small{display:block;font-size:11px;color:#666}
+.kcal b{font-size:30px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.macros{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
+.macros div{border:1px solid #e6e6e6;border-radius:12px;padding:6px 8px;font-size:10px}
+.macros div b{display:block;font-size:15px;color:#111;font-variant-numeric:tabular-nums}
+.ing{list-style:none;display:grid;gap:6px}
+.ing li{display:flex;justify-content:space-between;align-items:center;background:#f4f4f6;border-radius:12px;padding:8px 12px;font-size:13px;font-weight:600;
+  opacity:0;transform:translateY(10px);transition:opacity .45s var(--ease),transform .45s var(--ease)}
+.ing li.in{opacity:1;transform:none}
+.ing li small{display:block;font-weight:400;color:#666;font-size:11px}
+.ing li span:last-child{font-variant-numeric:tabular-nums;font-weight:500}
+.ing li.skel{background:linear-gradient(90deg,#f0f0f2 0%,#e5e5e9 50%,#f0f0f2 100%);background-size:200% 100%;animation:shimmer 1.2s linear infinite;height:38px}
+@keyframes shimmer{to{background-position:-200% 0}}
+.fixbox{position:absolute;left:14px;right:14px;top:30%;background:rgba(250,250,250,.96);border-radius:20px;padding:14px;color:#111;text-align:center;
+  box-shadow:0 20px 40px -16px rgba(0,0,0,.5);opacity:0;transform:scale(.92);transition:opacity .4s var(--ease),transform .4s var(--ease)}
+.fixbox.on{opacity:1;transform:none}
+.fixbox b{display:block;font-size:15px}.fixbox small{color:#777;font-size:12px}
+.fixbox .field{margin:10px 0;background:#fff;border:1px solid #ddd;border-radius:10px;padding:9px 10px;text-align:left;font-size:14px;min-height:38px}
+.fixbox .field::after{content:"";display:inline-block;width:2px;height:16px;background:var(--fats);vertical-align:-3px;margin-left:1px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.fixbox .acts{display:flex;justify-content:space-around;color:var(--green);font-weight:600;font-size:14px;border-top:1px solid #e5e5e5;padding-top:9px}
+.logged{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.04);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+.logged.on{opacity:1;transform:none}
+.flash{animation:flash 1.1s var(--ease)}
+@keyframes flash{0%{background:#fff4b0}100%{background:#f4f4f6}}
+@media (max-width:900px){
+  .scan{height:440vh}
+  .scan .pin{padding-top:76px;align-items:start}
+  .scan-grid{grid-template-columns:1fr;gap:14px}
+  .steps{min-height:200px}
+  .step h2{font-size:34px;margin:8px 0}
+  .step p{font-size:16px}
+  .scan .phone{width:min(210px,50vw,(100svh - 330px) * .46);margin-inline:auto}
+  /* render the mock screen at desktop size, then scale it down as one piece so its UI keeps its proportions */
+  .scan .screen{width:166.7%;height:166.7%;transform:scale(.6);transform-origin:0 0;border-radius:62px}
+  .progress-dots{margin-top:14px}
+}
+
+/* ---------- DATA (glass + rings) ---------- */
+.data{padding:140px 0 120px}
+.data-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:60px;align-items:center}
+.glass-stage{position:relative;height:620px;border-radius:36px;overflow:hidden;background:linear-gradient(160deg,#e3f6ea,#d4ecf7 55%,#fbe9cf);display:grid;place-items:center}
+.glass-stage .phone{width:250px;transform:rotate(-4deg)}
+.gcard{position:absolute;z-index:3;padding:16px 18px;border-radius:22px;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.9);
+  backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);box-shadow:0 24px 50px -24px rgba(11,40,22,.45);transition:transform .3s ease-out}
+.gcard small{display:block;font:11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.gcard .big{font:800 44px/1 var(--display);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.gcard .big span{font-size:18px;color:var(--muted);font-weight:500}
+.g-cal{left:6%;top:9%}.g-mac{right:5%;top:30%}.g-streak{left:8%;bottom:9%}.g-left{right:9%;bottom:12%}
+.rings{display:flex;gap:12px;margin-top:8px}
+.ring{width:62px;text-align:center;font:11px var(--mono);color:var(--muted)}
+.ring svg{width:62px;height:62px;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:7}
+.ring .bgc{stroke:rgba(11,15,12,.08)}
+.ring .fg{stroke-linecap:round;stroke-dasharray:164;stroke-dashoffset:164;transition:stroke-dashoffset 1.8s var(--ease)}
+.in .ring .fg{stroke-dashoffset:var(--off)}
+.flame{font-size:34px;line-height:1}
+.feature-list{list-style:none;margin-top:30px;display:grid;gap:14px}
+.feature-list li{display:flex;gap:14px;align-items:flex-start;font-size:17px;line-height:1.45}
+.feature-list li b{display:block}
+.feature-list .ic{flex:none;width:38px;height:38px;border-radius:12px;background:var(--green-soft);display:grid;place-items:center;font-size:18px}
+@media (max-width:900px){.data-grid{grid-template-columns:1fr}.glass-stage{height:560px}.glass-stage .phone{width:200px}.gcard .big{font-size:34px}.g-mac{right:3%}}
+@media (max-width:520px){.g-left{display:none}.g-mac{top:auto;bottom:30%}.ring{width:48px}.ring svg{width:48px;height:48px}}
+
+/* ---------- TURNTABLE ---------- */
+.tour{padding:120px 0;transition:background 1s var(--ease);overflow-x:clip} /* side phones of the turntable must not widen the page */
+.tour-head{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;flex-wrap:wrap}
+.turn{position:relative;height:640px;perspective:1600px;margin-top:40px}
+.turn .item{position:absolute;left:50%;top:50%;width:270px;margin:-290px 0 0 -135px;transition:transform 1s var(--ease),filter 1s var(--ease),opacity 1s var(--ease);cursor:pointer}
+.turn .item .phone{width:100%}
+.turn .label{text-align:center;margin-top:18px;font:500 13px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);transition:opacity .4s}
+.tour-ctrl{display:flex;gap:10px}
+.round{width:52px;height:52px;border-radius:50%;border:1px solid var(--line);background:var(--paper);display:grid;place-items:center;font-size:20px;transition:transform .3s var(--ease)}
+.round:hover{transform:scale(1.06)}
+.tour-caption{text-align:center;max-width:520px;margin:6px auto 0;min-height:56px;color:var(--muted);font-size:18px;line-height:1.5}
+@media (max-width:700px){.turn{height:520px}.turn .item{width:210px;margin:-230px 0 0 -105px}}
+
+/* ---------- PLATE BUILDER ---------- */
+.plate-sec{padding:120px 0;background:var(--paper);border-block:1px solid var(--line)}
+.builder{display:grid;grid-template-columns:300px 1fr 300px;gap:34px;align-items:center;margin-top:50px}
+.tubs{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tub{position:relative;height:118px;border-radius:22px;background:var(--bg);border:1px solid var(--line);display:grid;place-items:center;padding-bottom:22px;
+  transition:transform .3s var(--ease),background .3s;touch-action:manipulation}
+.tub:hover{transform:translateY(-3px)}
+.tub .thumb{width:66px;height:66px;border-radius:50%;background-size:cover;background-position:center;box-shadow:0 0 0 4px #fff,4px 8px 14px rgba(40,30,10,.25)}
+.tub .tag{position:absolute;left:8px;right:8px;bottom:8px;display:flex;justify-content:space-between;font:500 11px var(--mono);background:var(--paper);border-radius:8px;padding:6px 10px}
+.tub[aria-pressed=true]{background:var(--green-soft)}
+.tub[aria-pressed=true] .tag{background:var(--green);color:#fff}
+.plate-wrap{position:relative;width:min(460px,100%);aspect-ratio:1;margin-inline:auto}
+.plate-wrap svg.plate{width:100%;height:100%;overflow:visible;filter:drop-shadow(10px 18px 18px rgba(40,30,10,.25))}
+.target{position:absolute;inset:-18px;pointer-events:none}
+.target svg{width:100%;height:100%;transform:rotate(-90deg)}
+.target circle{fill:none;stroke-width:6}
+.target .bgc{stroke:rgba(11,15,12,.07)}
+.target .fg{stroke:var(--green);stroke-linecap:round;transition:stroke-dashoffset .9s var(--ease),stroke .4s}
+.target.over .fg{stroke:var(--flame)}
+.pillbar{display:flex;gap:10px;justify-content:center;align-items:center;margin-top:30px}
+.pill{min-height:46px;display:flex;align-items:center;padding:0 18px;border-radius:99px;background:var(--bg);border:1px solid var(--line);font-size:15px}
+.undo{width:46px;height:46px;border-radius:50%;background:var(--bg);border:1px solid var(--line);font-size:18px}
+.undo:disabled{opacity:.4;cursor:default}
+.log{background:var(--bg);border-radius:22px;padding:22px;border:1px solid var(--line);font:13px var(--mono)}
+.log h3{font:700 22px var(--display);letter-spacing:-.02em;margin-bottom:4px}
+.log .sub{color:var(--muted);margin-bottom:14px;font-size:12px}
+.log ul{list-style:none;display:grid;gap:4px;min-height:150px}
+.log li{display:flex;justify-content:space-between;padding:6px 8px;border-radius:8px}
+.log li.new{animation:flash2 1.2s var(--ease)}
+@keyframes flash2{0%{background:#fff1a6}100%{background:transparent}}
+.log .empty{color:var(--muted);padding:6px 8px}
+.log .total{display:flex;justify-content:space-between;border-top:1px dashed #c9cfc9;margin-top:12px;padding-top:12px;font-size:15px}
+.log .total b{font-variant-numeric:tabular-nums}
+.macro-bars{display:grid;gap:7px;margin-top:14px}
+.macro-bars div{display:grid;grid-template-columns:62px 1fr 42px;align-items:center;gap:8px;font-size:11px;color:var(--muted)}
+.macro-bars i{height:6px;border-radius:6px;background:rgba(11,15,12,.07);overflow:hidden}
+.macro-bars i b{display:block;height:100%;width:0;border-radius:6px;transition:width .8s var(--ease)}
+@media (max-width:1000px){.builder{grid-template-columns:1fr;gap:26px}.tubs{grid-template-columns:repeat(4,1fr);order:2}.log{order:3}.plate-wrap{width:min(360px,86vw)}}
+@media (max-width:520px){.tubs{grid-template-columns:repeat(2,1fr)}}
+
+/* ---------- PROGRESS CHART ---------- */
+.prog{padding:130px 0}
+.chart-card{margin-top:44px;background:var(--paper);border-radius:var(--radius);border:1px solid var(--line);padding:32px 32px 36px;box-shadow:0 30px 60px -40px rgba(11,40,22,.35)}
+.chart-top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px}
+.chart-top .w{font:800 clamp(40px,5vw,64px)/1 var(--display);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.chart-top .w .unit{font-size:.4em;color:var(--muted);font-weight:500}
+.badge{display:inline-flex;gap:8px;align-items:center;padding:8px 14px;border-radius:99px;background:var(--green-soft);color:#11683a;font-weight:600;font-size:14px}
+.chart{width:100%;height:auto;margin-top:22px;overflow:visible}
+.chart .line{fill:none;stroke:var(--green);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+.chart .area{fill:url(#ga);opacity:0;transition:opacity 1.2s .6s}
+.chart.in .area{opacity:1}
+.chart .goal{stroke:var(--green);stroke-dasharray:6 7;opacity:.55}
+.chart text{font:12px var(--mono);fill:var(--muted)}
+.chart .grid line{stroke:rgba(11,15,12,.07)}
+.chart .tip circle{fill:var(--green);stroke:#fff;stroke-width:3}
+
+/* ---------- BENTO ---------- */
+.bento-sec{padding:40px 0 130px}
+.bento{display:grid;grid-template-columns:repeat(6,1fr);grid-auto-rows:minmax(220px,auto);gap:16px;margin-top:44px}
+.tile{position:relative;overflow:hidden;border-radius:var(--radius);background:var(--paper);border:1px solid var(--line);padding:28px;display:flex;flex-direction:column;justify-content:flex-end;
+  transition:transform .5s var(--ease),box-shadow .5s var(--ease)}
+.tile:hover{transform:translateY(-4px);box-shadow:0 30px 50px -36px rgba(11,40,22,.4)}
+.tile h3{font:700 26px/1.05 var(--display);letter-spacing:-.025em;margin-bottom:8px}
+.tile p{color:var(--muted);line-height:1.5}
+.t-lang{grid-column:span 4;background:var(--night);color:#eef2ee}
+.t-lang p{color:#a9b3ab}
+.t-priv{grid-column:span 2;background:#16231b;color:#eef2ee}
+.t-priv p{color:#a9b3ab}
+.t-widget,.t-health,.t-plan{grid-column:span 2}
+.langs{position:absolute;top:24px;left:0;right:0;display:grid;gap:10px;opacity:.95}
+.langs div{white-space:nowrap;font:600 30px var(--display);letter-spacing:-.02em}
+.langs div span{display:inline-block;animation:run 30s linear infinite}
+.langs div:nth-child(2) span{animation-direction:reverse;animation-duration:38s;color:var(--green-2)}
+.langs div:nth-child(3) span{animation-duration:46s;color:#6c7a70}
+.t-lang{min-height:340px}
+.with-icon{display:flex;align-items:center;gap:10px}
+.with-icon svg{width:26px;height:26px;flex:none;color:var(--green-2)}
+.widget-mini{position:absolute;top:24px;left:24px;display:flex;gap:10px}
+.wm{width:96px;height:96px;border-radius:24px;background:var(--bg);border:1px solid var(--line);padding:12px;font:11px var(--mono);color:var(--muted);display:flex;flex-direction:column;justify-content:space-between}
+.wm b{font:800 26px var(--display);color:var(--ink);letter-spacing:-.02em}
+.wm:nth-child(2){transform:rotate(4deg) translateY(10px)}
+.hb{position:absolute;top:28px;left:28px;right:28px;display:flex;align-items:flex-end;gap:7px;height:90px}
+.hb i{flex:1;border-radius:6px 6px 2px 2px;background:var(--green-soft);position:relative;height:var(--a)}
+.hb i::after{content:"";position:absolute;left:0;right:0;bottom:0;height:var(--b);border-radius:6px 6px 2px 2px;background:var(--flame);opacity:.85}
+.plan-mini{position:absolute;top:24px;left:24px;right:24px;display:grid;gap:7px}
+.plan-mini div{display:flex;justify-content:space-between;background:var(--bg);border-radius:12px;padding:8px 12px;font-size:13px}
+.plan-mini div span:last-child{font:12px var(--mono);color:var(--muted)}
+.t-widget,.t-health,.t-plan{min-height:300px}
+@media (max-width:600px){.chart-card{padding:22px 20px 26px}}
+@media (max-width:900px){.bento{grid-template-columns:1fr 1fr}.t-lang,.t-priv,.t-widget,.t-health,.t-plan{grid-column:span 2}}
+
+/* ---------- CTA + FOOTER ---------- */
+.cta{padding:140px 0 0;background:var(--night);color:#eef2ee;overflow:hidden;text-align:center}
+.cta h2{font-size:clamp(46px,7vw,100px);color:#fff}
+.cta h2 em{color:var(--green-2)}
+.cta .lead{margin:0 auto;color:#a9b3ab}
+.cta .ctas{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:34px}
+.cta .btn.ghost{color:#eef2ee}
+.wordmark{margin-top:110px;font:800 clamp(80px,19vw,300px)/.8 var(--display);letter-spacing:-.06em;color:transparent;
+  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,0) 85%);-webkit-background-clip:text;background-clip:text;user-select:none;transform:translateY(12%)}
+footer{background:var(--night);color:#7e8a81;font:12px var(--mono);border-top:1px solid rgba(255,255,255,.07)}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:26px 0}
+
+/* scroll reveal */
+.rv{opacity:0;transform:translateY(36px);transition:opacity .9s var(--ease),transform .9s var(--ease)}
+.rv.in{opacity:1;transform:none}
+.rv.d1{transition-delay:.08s}.rv.d2{transition-delay:.16s}.rv.d3{transition-delay:.24s}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+  .rv,.focus .w{opacity:1!important;transform:none!important;filter:none!important}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<nav class="nav" id="nav" aria-label="Main">
+  <a href="#top" class="brand" aria-label="CalorieLens home">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 29V15" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M16 17c-6 0-9-4-9-10 4 0 7 2 9 5 2-3 5-5 9-5 0 6-3 10-9 10Z" fill="var(--green)"/><path d="M16 12c-1.5-2-1.5-5 0-8 1.5 3 1.5 6 0 8Z" fill="var(--green)"/></svg>
+    CalorieLens
+  </a>
+  <ul>
+    <li><a href="#scan">How it works</a></li>
+    <li><a href="#data">Your day</a></li>
+    <li><a href="#tour">Tour</a></li>
+    <li><a href="#plate">Try it</a></li>
+  </ul>
+  <a href="#get" class="btn">Get early access</a>
+</nav>
+
+<main id="top">
+<!-- ============ 1. HERO ============ -->
+<section class="hero">
+  <div class="mesh" aria-hidden="true"><i></i><i></i><i></i></div>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="behind" aria-hidden="true"><span class="track">Salads · Bowls · Pasta · Ramen · Tacos · Sushi · Curry · Smoothies · Salads · Bowls · Pasta · Ramen · Tacos · Sushi · Curry · Smoothies · </span></div>
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow">AI calorie tracker · iPhone &amp; Android</span>
+      <h1 class="focus" id="headline">Snap your plate. <span class="accent">Know your day.</span></h1>
+      <p class="lead rv d1">Point your camera at a meal. CalorieLens names every item, counts calories, protein, carbs and fat, and lets you fix anything in plain words.</p>
+      <div class="ctas rv d2">
+        <a href="#get" class="btn green">Get early access →</a>
+        <a href="#scan" class="btn ghost">See a scan</a>
+      </div>
+      <div class="stores rv d3">
+        <span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.8 1.2 1.8 2.6 3.1 2.6 1.3-.1 1.7-.8 3.3-.8 1.5 0 1.9.8 3.3.8s2.2-1.2 3-2.5c1-1.4 1.3-2.8 1.4-2.8-.1 0-2.4-.9-2.4-4.2ZM13.9 4.9c.7-.8 1.2-2 1-3.1-1 0-2.2.7-2.9 1.5-.6.7-1.2 1.9-1 3 1.1.1 2.2-.6 2.9-1.4Z"/></svg>iOS 18+</span>
+        <span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.6 9.5 19.3 6.6a.4.4 0 0 0-.7-.4l-1.7 3a10.5 10.5 0 0 0-9.8 0l-1.7-3a.4.4 0 1 0-.7.4l1.7 2.9A9.8 9.8 0 0 0 1.5 17h21a9.8 9.8 0 0 0-4.9-7.5ZM7 14.3a.9.9 0 1 1 0-1.8.9.9 0 0 1 0 1.8Zm10 0a.9.9 0 1 1 0-1.8.9.9 0 0 1 0 1.8Z"/></svg>Android 8+</span>
+        <span>16 languages</span>
+      </div>
+    </div>
+    <div class="phone-stage" id="heroStage">
+      <div class="phone" id="heroPhone"><img src="assets/home.jpg" alt="CalorieLens home screen: 730 of 2,000 calories eaten, macro rings, and recently logged Masala Dosa and Idli with Sambar" width="506" height="1100" fetchpriority="high"></div>
+      <div class="chip c1" data-d="26"><span class="dot" style="background:#ffe7d6">🥞</span><span><b>Masala Dosa</b><small>410 kcal · 12:00 PM</small></span></div>
+      <div class="chip c2" data-d="40"><span class="dot" style="background:#fde2e2">🍗</span><span><b>20 g protein</b><small>of 120 g today</small></span></div>
+      <div class="chip c3" data-d="18"><span class="dot" style="background:#dff3e6">✓</span><span><b>1,270 left</b><small>on your 2,000 goal</small></span></div>
+      <div class="chip c4" data-d="34"><span class="dot" style="background:#ffedd5">🔥</span><span><b>6-day streak</b><small>keep it going</small></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2. STRIP ============ -->
+<div class="strip" aria-hidden="true"><div class="track" id="strip">
+  <span>Photo scan</span><span>Barcode lookup</span><span>Fix in plain words</span><span>Macro rings</span><span>Weight progress</span><span>Diet plans</span><span>Meal reminders</span><span>Home &amp; Lock Screen widgets</span><span>Apple Health &amp; Health Connect</span><span>Dark mode</span>
+</div></div>
+
+<!-- ============ 3. SCAN (pinned) ============ -->
+<section class="scan" id="scan" aria-label="How a scan works">
+  <div class="pin">
+    <div class="wrap scan-grid">
+      <div>
+        <div class="steps" id="steps">
+          <div class="step on"><h2>Point at your plate. <em>That's it.</em></h2><p>No searching, no weighing, no typing out "half an avocado, some chickpeas…". Scan food, scan a barcode, or pick a photo from your library.</p></div>
+          <div class="step"><h2>Watch it <em>think.</em></h2><p>Each food appears the moment the AI spots it, with its calories and portion, instead of a spinner and a wait.</p></div>
+          <div class="step"><h2>Wrong? <em>Just say so.</em></h2><p>Type "it had tahini dressing" and the estimate updates. Add weight, how it was cooked or the oil used for a closer number.</p></div>
+          <div class="step"><h2>Logged. <em>Your day adds up.</em></h2><p>Tap Done and it lands on your home screen: calories left, macro rings and streak, all updated.</p></div>
+        </div>
+        <div class="progress-dots" aria-hidden="true"><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i></div>
+      </div>
+      <div>
+        <div class="phone" aria-hidden="true">
+          <div class="screen">
+            <div class="cam" id="cam">
+              <img class="food" src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=900&h=1300&fit=crop&q=80&auto=format" alt="" width="900" height="1300" loading="lazy">
+            </div>
+            <div class="cam-top" id="camTop">CalorieLens</div>
+            <div class="finder" id="finder"><i></i><i></i><i></i><i></i><div class="scanline" id="scanline"></div></div>
+            <div class="shutter" id="shutter"></div>
+            <div class="sheet" id="sheet">
+              <div class="sheet-title">Rainbow salad bowl</div>
+              <div class="kcal"><span class="ico">🔥</span><span><small>Calories</small><b id="kcal">0</b></span></div>
+              <div class="macros"><div style="color:#c62828">Protein<b id="mp">0g</b></div><div style="color:#b45309">Carbs<b id="mc">0g</b></div><div style="color:#1d4ed8">Fats<b id="mf">0g</b></div></div>
+              <ul class="ing" id="ing"></ul>
+            </div>
+            <img class="logged" id="logged" src="assets/home.jpg" alt="" width="506" height="1100" loading="lazy">
+            <div class="fixbox" id="fixbox"><b>What's wrong?</b><small>Tell the AI what to correct.</small><div class="field" id="fixfield"></div><div class="acts"><span>Cancel</span><span>Fix</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4. DATA ============ -->
+<section class="data" id="data">
+  <div class="wrap data-grid">
+    <div>
+      <span class="eyebrow rv">Your day at a glance</span>
+      <h2 class="rv d1">Every bite, <em>adding up.</em></h2>
+      <p class="lead rv d2">One look tells you where you stand: calories left, protein, carbs and fat as rings, and a streak that rewards showing up.</p>
+      <ul class="feature-list">
+        <li class="rv d1"><span class="ic">🎯</span><span><b>A plan built for you</b>Height, weight, activity and goal turn into a daily target using the Mifflin-St Jeor formula. Change it any time.</span></li>
+        <li class="rv d2"><span class="ic">⏰</span><span><b>Reminders that know your meals</b>A friendly note before lunch, and a nudge if you forgot to log it.</span></li>
+        <li class="rv d3"><span class="ic">📦</span><span><b>Barcodes too</b>Packaged food is looked up on Open Food Facts.</span></li>
+      </ul>
+    </div>
+    <div class="glass-stage" id="glass">
+      <div class="phone"><img src="assets/home.jpg" alt="" width="506" height="1100" loading="lazy"></div>
+      <div class="gcard g-cal" data-d="22"><small>Eaten today</small><div class="big"><span data-count="730">0</span><span> / 2,000</span></div></div>
+      <div class="gcard g-mac" data-d="38"><small>Macros</small>
+        <div class="rings">
+          <div class="ring"><svg viewBox="0 0 62 62"><circle class="bgc" cx="31" cy="31" r="26"/><circle class="fg" cx="31" cy="31" r="26" style="stroke:var(--protein);--off:137"/></svg>Protein</div>
+          <div class="ring"><svg viewBox="0 0 62 62"><circle class="bgc" cx="31" cy="31" r="26"/><circle class="fg" cx="31" cy="31" r="26" style="stroke:var(--carbs);--off:74"/></svg>Carbs</div>
+          <div class="ring"><svg viewBox="0 0 62 62"><circle class="bgc" cx="31" cy="31" r="26"/><circle class="fg" cx="31" cy="31" r="26" style="stroke:var(--fats);--off:116"/></svg>Fats</div>
+        </div>
+      </div>
+      <div class="gcard g-streak" data-d="30"><small>Day streak</small><div class="big"><span class="flame" aria-hidden="true">🔥</span> <span data-count="6">0</span></div></div>
+      <div class="gcard g-left" data-d="16"><small>Left today</small><div class="big" style="color:var(--green)"><span data-count="1270" data-comma>0</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5. TOUR (turntable) ============ -->
+<section class="tour" id="tour">
+  <div class="wrap">
+    <div class="tour-head">
+      <div><span class="eyebrow rv">Take the tour</span><h2 class="rv d1">Five screens. <em>No clutter.</em></h2></div>
+      <div class="tour-ctrl rv d2"><button class="round" id="prev" aria-label="Previous screen">←</button><button class="round" id="next" aria-label="Next screen">→</button></div>
+    </div>
+    <div class="turn" id="turn" aria-roledescription="carousel"></div>
+    <p class="tour-caption" id="tourCaption" aria-live="polite"></p>
+  </div>
+</section>
+
+<!-- ============ 6. PLATE BUILDER ============ -->
+<section class="plate-sec" id="plate">
+  <div class="wrap">
+    <span class="eyebrow rv">Try it right here</span>
+    <h2 class="rv d1">Build a bowl. <em>Watch it count.</em></h2>
+    <p class="lead rv d2">The greens are already in. Tap toppings to add them, tap again to take them out. The ring fills toward a 600 kcal lunch. Numbers are typical portions, for fun.</p>
+    <div class="builder">
+      <div class="tubs" id="tubs" role="group" aria-label="Toppings"></div>
+      <div>
+        <div class="plate-wrap" id="plateWrap">
+          <div class="target" id="target" aria-hidden="true"><svg viewBox="0 0 100 100"><circle class="bgc" cx="50" cy="50" r="48"/><circle class="fg" id="targetFg" cx="50" cy="50" r="48" stroke-dasharray="301.6" stroke-dashoffset="301.6"/></svg></div>
+          <svg class="plate" id="plateSvg" viewBox="-300 -300 600 600" aria-hidden="true">
+            <defs>
+              <radialGradient id="rim" cx=".35" cy=".3"><stop offset="0" stop-color="#ffffff"/><stop offset=".75" stop-color="#eef0ea"/><stop offset="1" stop-color="#d6dad2"/></radialGradient>
+              <radialGradient id="shade" cx=".5" cy=".5" r=".5"><stop offset=".72" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".28"/></radialGradient>
+              <clipPath id="inner"><circle r="236"/></clipPath>
+            </defs>
+            <circle r="292" fill="url(#rim)"/>
+            <g clip-path="url(#inner)">
+              <image href="https://images.unsplash.com/photo-1723110569402-6eec857daa4d?w=700&h=700&fit=crop&q=75&auto=format" x="-240" y="-240" width="480" height="480" preserveAspectRatio="xMidYMid slice"/>
+              <g id="pieces"></g>
+              <circle r="236" fill="url(#shade)"/>
+            </g>
+            <circle r="236" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="3"/>
+          </svg>
+        </div>
+        <div class="pillbar"><div class="pill" id="pill" aria-live="polite">Start with a protein. Tap a topping.</div><button class="undo" id="undo" aria-label="Undo" disabled>↶</button></div>
+      </div>
+      <aside class="log" aria-label="Lunch log">
+        <h3>Your bowl</h3><div class="sub">Goal 600 kcal</div>
+        <ul id="logList"><li class="empty">Nothing yet.</li></ul>
+        <div class="total"><span>Total</span><b id="logTotal">0 kcal</b></div>
+        <div class="macro-bars">
+          <div>Protein<i><b id="bp" style="background:var(--protein)"></b></i><span id="tp">0 g</span></div>
+          <div>Carbs<i><b id="bc" style="background:var(--carbs)"></b></i><span id="tc">0 g</span></div>
+          <div>Fats<i><b id="bf" style="background:var(--fats)"></b></i><span id="tf">0 g</span></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 7. PROGRESS ============ -->
+<section class="prog" id="progress">
+  <div class="wrap">
+    <span class="eyebrow rv">Progress</span>
+    <h2 class="rv d1">See the line <em>bend.</em></h2>
+    <p class="lead rv d2">Log your weight in a tap. The chart shows 90 days, 6 months, a year or everything, with your goal as a dashed line.</p>
+    <div class="chart-card rv">
+      <div class="chart-top">
+        <div><small class="eyebrow" style="color:var(--muted)">Your weight</small><div class="w"><span id="wNow">74.0</span> <span class="unit">kg</span></div></div>
+        <span class="badge">▼ <span id="wDown">0.0</span> kg in 90 days</span>
+      </div>
+      <svg class="chart" id="chart" viewBox="0 0 1000 350" role="img" aria-label="Weight falling from 74 kg to 69.8 kg over 90 days, goal 68 kg">
+        <defs><linearGradient id="ga" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#34c26e" stop-opacity=".28"/><stop offset="1" stop-color="#34c26e" stop-opacity="0"/></linearGradient></defs>
+        <g class="grid"><line x1="0" x2="940" y1="40" y2="40"/><line x1="0" x2="940" y1="130" y2="130"/><line x1="0" x2="940" y1="220" y2="220"/></g>
+        <text x="950" y="44">74</text><text x="950" y="134">72</text><text x="950" y="224">70</text><text x="950" y="314">68</text>
+        <line class="goal" x1="0" x2="940" y1="310" y2="310"/><text x="880" y="300">Goal</text>
+        <path class="area" id="area"/><path class="line" id="line"/>
+        <g class="tip" id="tip" opacity="0"><circle r="8"/></g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 8. BENTO ============ -->
+<section class="bento-sec">
+  <div class="wrap">
+    <span class="eyebrow rv">Made for real life</span>
+    <h2 class="rv d1">Small things, <em>done properly.</em></h2>
+    <div class="bento">
+      <div class="tile t-lang rv">
+        <div class="langs" aria-hidden="true">
+          <div><span>English · Español · Português · Français · Deutsch · Italiano · Polski · Türkçe · English · Español · Português · Français · Deutsch · Italiano · Polski · Türkçe · </span></div>
+          <div><span>हिन्दी · العربية · 中文 · 日本語 · 한국어 · ไทย · Русский · Indonesia · हिन्दी · العربية · 中文 · 日本語 · 한국어 · ไทย · Русский · Indonesia · </span></div>
+          <div><span>kg · lb · cm · ft · kg · lb · cm · ft · kg · lb · cm · ft · kg · lb · cm · ft · kg · lb · cm · ft · kg · lb · cm · ft · </span></div>
+        </div>
+        <h3>16 languages, your units</h3><p>The app follows your phone. Scans and plans answer in your language too, and Arabic reads right to left.</p>
+      </div>
+      <div class="tile t-priv rv d1"><h3 class="with-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="15.5" r="1.4" fill="currentColor"/></svg>Private by design</h3><p>The AI key lives on our server, never in the app. Cycle tracking stays on your phone and is never sent anywhere.</p></div>
+      <div class="tile t-widget rv">
+        <div class="widget-mini" aria-hidden="true"><div class="wm">CALORIES<b>1,270</b>left</div><div class="wm">STREAK<b>🔥 6</b>days</div></div>
+        <h3>Widgets &amp; reminders</h3><p>Calories on your Home and Lock Screen. Quick-log opens the camera in one tap.</p>
+      </div>
+      <div class="tile t-health rv d1">
+        <div class="hb" aria-hidden="true"><i style="--a:70%;--b:52%"></i><i style="--a:84%;--b:61%"></i><i style="--a:62%;--b:70%"></i><i style="--a:90%;--b:58%"></i><i style="--a:76%;--b:66%"></i><i style="--a:68%;--b:49%"></i><i style="--a:80%;--b:72%"></i></div>
+        <h3>Eaten vs burned</h3><p>Reads active energy from Apple Health or Health Connect and puts it next to what you ate.</p>
+      </div>
+      <div class="tile t-plan rv d2">
+        <div class="plan-mini" aria-hidden="true"><div><span>Idli with sambar</span><span>320 cal</span></div><div><span>Lemon rice with curd</span><span>420 cal</span></div><div><span>Roasted chana</span><span>230 cal</span></div></div>
+        <h3>Weekly diet plans</h3><p>Seven days of meals from foods you like and can actually buy. Tick what you ate; next week keeps those.</p>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ============ 9. CTA ============ -->
+<section class="cta" id="get">
+  <div class="wrap">
+    <span class="eyebrow" style="color:var(--green-2)">Coming soon</span>
+    <h2>Eat well. <em>Log less.</em></h2>
+    <p class="lead">CalorieLens is coming to the App Store and Google Play. Leave your email and we'll tell you the day it's out.</p>
+    <form class="ctas" id="notify" onsubmit="event.preventDefault();this.querySelector('button').textContent='Thanks, we\'ll be in touch ✓';this.querySelector('input').disabled=true;">
+      <label class="sr" for="email">Email</label>
+      <input id="email" type="email" required placeholder="you@example.com" autocomplete="email" style="min-height:52px;padding:0 20px;border-radius:99px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff;font:inherit;font-size:16px;width:min(320px,100%)">
+      <button class="btn green" style="min-height:52px">Notify me</button>
+    </form>
+  </div>
+  <div class="wordmark" aria-hidden="true">CalorieLens</div>
+</section>
+<footer><div class="wrap"><span>© 2026 CalorieLens</span><span>Food photos: <a href="https://unsplash.com/license" style="text-decoration:underline">Unsplash</a> — Anna Pelzer, engin akyurt, Thomas Park, Zoshua Colah, John Vid, Brands&amp;People, blackieshoot, Zakir Hussain, Sviatoslav Huzii, Jeremy Ricketts</span><span>Estimates, not medical advice. Food numbers on this page are examples.</span></div></footer>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const finePointer=matchMedia('(hover:hover) and (pointer:fine)').matches;
+const EASE='cubic-bezier(.22,1,.36,1)';
+const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+const fmt=n=>Math.round(n).toLocaleString('en-US');
+
+/* ---------- headline focus reveal ---------- */
+(function(){const h=$('#headline');const walk=n=>{[...n.childNodes].forEach(c=>{if(c.nodeType===3){const f=document.createDocumentFragment();
+  c.textContent.split(/(\s+)/).forEach(w=>{if(!w)return;if(/^\s+$/.test(w)){f.append(w);return}const s=document.createElement('span');s.className='w';s.textContent=w;f.append(s)});c.replaceWith(f)}else walk(c)})};
+  walk(h);$$('#headline .w').forEach((w,i)=>w.style.transitionDelay=i*80+'ms');requestAnimationFrame(()=>setTimeout(()=>h.classList.add('in'),120))})();
+
+/* ---------- reveal on scroll + count-ups ---------- */
+function countUp(el,to,dur=1600){if(reduce){el.textContent=fmt(to);return}const t0=performance.now();(function f(t){const p=clamp((t-t0)/dur);el.textContent=fmt(to*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)})(t0)}
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;e.target.classList.add('in');
+  e.target.querySelectorAll?.('[data-count]').forEach(c=>countUp(c,+c.dataset.count));io.unobserve(e.target)}),{threshold:.18});
+$$('.rv').forEach(el=>io.observe(el));io.observe($('#glass'));
+
+/* ---------- nav goes dark over dark sections ---------- */
+const nav=$('#nav');
+function navTheme(){const y=nav.getBoundingClientRect().bottom;const dark=[$('#scan'),$('#get')].some(s=>{const r=s.getBoundingClientRect();return r.top<y&&r.bottom>y});nav.classList.toggle('dark',dark)}
+
+/* ---------- pointer parallax (hero chips, glass cards) ---------- */
+function parallax(stage,sel){if(!finePointer||reduce)return;stage.addEventListener('pointermove',e=>{const r=stage.getBoundingClientRect();const x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
+  stage.querySelectorAll(sel).forEach(c=>{const d=+c.dataset.d;c.style.transform=`translate(${x*d}px,${y*d}px)`})});
+  stage.addEventListener('pointerleave',()=>stage.querySelectorAll(sel).forEach(c=>c.style.transform=''))}
+parallax($('.hero'),'.chip');parallax($('#glass'),'.gcard');
+
+/* ---------- strip: duplicate for seamless loop ---------- */
+$('#strip').innerHTML+= $('#strip').innerHTML;
+
+/* ---------- SCAN: pinned, scroll-driven ---------- */
+const ITEMS=[{n:'Avocado',s:'½ fruit',k:120,p:2,c:6,f:11},{n:'Chickpeas',s:'½ cup',k:135,p:7,c:22,f:2},{n:'Roasted sweet potato',s:'½ cup',k:90,p:2,c:21,f:0},{n:'Cherry tomatoes',s:'6 pieces',k:20,p:1,c:4,f:0}];
+const DRESS={n:'Tahini dressing',s:'2 tbsp',k:180,p:5,c:6,f:16};
+const scan=$('#scan'),steps=$$('.step'),dots=$$('.progress-dots b');
+const ing=$('#ing'),sheet=$('#sheet'),fixbox=$('#fixbox'),fixfield=$('#fixfield');
+let scanState={stage:-1,shown:0,fixed:false,kcal:0};
+function totals(list){return list.reduce((a,i)=>({k:a.k+i.k,p:a.p+i.p,c:a.c+i.c,f:a.f+i.f}),{k:0,p:0,c:0,f:0})}
+function setNums(list){const t=totals(list);const from=scanState.kcal;scanState.kcal=t.k;
+  if(reduce){$('#kcal').textContent=t.k}else{const t0=performance.now();(function f(n){const p=clamp((n-t0)/700);$('#kcal').textContent=Math.round(from+(t.k-from)*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)})(t0)}
+  $('#mp').textContent=t.p+'g';$('#mc').textContent=t.c+'g';$('#mf').textContent=t.f+'g'}
+function renderIng(n,fixed){const list=[...ITEMS.slice(0,n),...(fixed?[DRESS]:[])];
+  ing.innerHTML=list.map((it,i)=>`<li class="in${fixed&&it===DRESS?' flash':''}"><span>${it.n}<small>${it.s}</small></span><span>${it.k} cal</span></li>`).join('')+(n<ITEMS.length&&n>0?'<li class="skel"></li>':'');
+  return list}
+function scanUpdate(){
+  const r=scan.getBoundingClientRect();const total=r.height-innerHeight;const p=clamp(-r.top/total);
+  const stage=p<.22?0:p<.5?1:p<.78?2:3;
+  dots.forEach((d,i)=>d.style.transform=`scaleX(${clamp((p-i*.25)/.25)})`);
+  if(stage!==scanState.stage){steps.forEach((s,i)=>s.classList.toggle('on',i===stage));scanState.stage=stage}
+  // 0: viewfinder + scan line sweep
+  const sweep=clamp(p/.2);const sl=$('#scanline');sl.style.opacity=p<.2?1:0;sl.style.top=(sweep*100)+'%';
+  $('#cam').style.transform=`scale(${1+clamp(p/.2)*.08})`;
+  // 1: sheet up, items stream in
+  const up=p>=.2;sheet.classList.toggle('up',up);$('#finder').style.opacity=up?0:1;$('#shutter').style.opacity=up?0:1;$('#camTop').style.opacity=up?0:1;
+  const shown=!up?0:p<.26?0:p<.3?1:p<.34?2:p<.38?3:4;
+  // 2: fix dialog types "It was 4 idlis"
+  const typed='It had tahini dressing';const tp=clamp((p-.52)/.16);const fixOn=p>=.5&&p<.72;fixbox.classList.toggle('on',fixOn);
+  fixfield.textContent=typed.slice(0,Math.round(tp*typed.length));
+  const fixed=p>=.72;$('#logged').classList.toggle('on',stage===3&&p>=.84);
+  if(shown!==scanState.shown||fixed!==scanState.fixed){const list=renderIng(shown,fixed);setNums(list);
+    scanState.shown=shown;scanState.fixed=fixed}
+}
+
+/* ---------- TOUR: turntable of real screenshots ---------- */
+const SCREENS=[
+  {img:'home.jpg',label:'Home',cap:'Calories left, macro rings, streak and everything you ate today.',tint:'#eef7f1'},
+  {img:'progress.jpg',label:'Progress',cap:'Weight against your goal, with a day streak to keep you honest.',tint:'#f1f5ec'},
+  {img:'progress-calories.jpg',label:'Calories',cap:'Seven days of calories at a glance.',tint:'#fdf5ea'},
+  {img:'plan.jpg',label:'Diet plan',cap:'A week of meals you can actually cook. Tick what you followed.',tint:'#eef3fb'},
+  {img:'home-dark.jpg',label:'Dark mode',cap:'Easy on the eyes after dinner. Follows your phone automatically.',tint:'#e6ebe7'},
+];
+const turn=$('#turn');let ti=0;
+SCREENS.forEach((s,i)=>{const d=document.createElement('div');d.className='item';d.innerHTML=`<div class="phone"><img src="assets/${s.img}" alt="CalorieLens ${s.label} screen" width="506" height="1100" loading="lazy"></div><div class="label">${s.label}</div>`;d.onclick=()=>{ti=i;layoutTurn()};turn.appendChild(d)});
+const titems=$$('.turn .item');
+function layoutTurn(){const N=titems.length,R=innerWidth<700?260:420;titems.forEach((el,i)=>{let k=((i-ti)%N+N)%N;if(k>N/2)k-=N;const a=k*(2*Math.PI/N);
+  el.style.transform=`translate3d(${Math.sin(a)*R}px,0,${(Math.cos(a)-1)*R}px) scale(${k?.78:1})`;el.style.filter=k?`blur(${Math.min(Math.abs(k)*3,8)}px) saturate(.7)`:'none';
+  el.style.opacity=Math.abs(k)>2?0:Math.abs(k)===2?.5:1;el.style.zIndex=10-Math.abs(k);el.querySelector('.label').style.opacity=k?0:1;el.setAttribute('aria-hidden',k!==0)});
+  $('#tourCaption').textContent=SCREENS[ti].cap;$('#tour').style.background=`linear-gradient(180deg,var(--bg),${SCREENS[ti].tint} 30%,${SCREENS[ti].tint} 70%,var(--bg))`}
+$('#prev').onclick=()=>{ti=(ti-1+titems.length)%titems.length;layoutTurn()};$('#next').onclick=()=>{ti=(ti+1)%titems.length;layoutTurn()};
+let sx=null;turn.addEventListener('pointerdown',e=>sx=e.clientX);turn.addEventListener('pointerup',e=>{if(sx===null)return;const dx=e.clientX-sx;if(Math.abs(dx)>40){ti=(ti+(dx<0?1:-1)+titems.length)%titems.length;layoutTurn()}sx=null});
+layoutTurn();addEventListener('resize',layoutTurn);
+
+/* ---------- BOWL BUILDER (build-your-own engine) ---------- */
+/* Real top-down photos, one per topping. Each topping fills one wedge of the bowl (six wedges + centre). */
+const IMG=id=>`https://images.unsplash.com/${id}?w=600&h=600&fit=crop&q=75&auto=format`;
+const BASE={name:'Greens',k:15,p:1,c:3,f:0};
+const FOODS=[
+  {id:'chicken',name:'Chicken',k:165,p:31,c:0,f:4,img:'photo-1689774187968-0e6c29a1d82e'},
+  {id:'chickpeas',name:'Chickpeas',k:135,p:7,c:22,f:2,img:'photo-1788629071741-b69c10388162'},
+  {id:'avocado',name:'Avocado',k:120,p:2,c:6,f:11,img:'photo-1704960961278-a0376a031054'},
+  {id:'tomato',name:'Tomatoes',k:25,p:1,c:5,f:0,img:'photo-1618864138281-02a9fb66deb7'},
+  {id:'cucumber',name:'Cucumber',k:15,p:1,c:3,f:0,img:'photo-1627981906592-ae3f0ee9486d'},
+  {id:'corn',name:'Corn',k:90,p:3,c:19,f:1,img:'photo-1701326786998-3688beceadda'},
+  {id:'strawberry',name:'Strawberry',k:35,p:1,c:8,f:0,img:'photo-1587393855524-087f83d95bc9'},
+  {id:'blueberry',name:'Blueberry',k:45,p:1,c:11,f:0,img:'photo-1425934398893-310a009a77f9'},
+];
+const GOAL=600,NS='http://www.w3.org/2000/svg';
+const piecesG=$('#pieces'),plateSvg=$('#plateSvg');
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);parent&&parent.appendChild(e);return e}
+/* slot geometry in bowl units (600 wide, 0,0 centre) */
+const R_IN=78,R_OUT=232;
+function slotShape(slot){
+  if(slot===6)return{d:`M ${R_IN-6} 0 A ${R_IN-6} ${R_IN-6} 0 1 1 ${-(R_IN-6)} 0 A ${R_IN-6} ${R_IN-6} 0 1 1 ${R_IN-6} 0Z`,c:{x:0,y:0},box:[-80,-80,160,160]};
+  const a0=(slot*60-90)*Math.PI/180,a1=a0+Math.PI/3,P=(r,a)=>`${(r*Math.cos(a)).toFixed(1)} ${(r*Math.sin(a)).toFixed(1)}`;
+  const d=`M ${P(R_IN,a0)} L ${P(R_OUT,a0)} A ${R_OUT} ${R_OUT} 0 0 1 ${P(R_OUT,a1)} L ${P(R_IN,a1)} A ${R_IN} ${R_IN} 0 0 0 ${P(R_IN,a0)} Z`;
+  const am=(a0+a1)/2,rm=(R_IN+R_OUT)/2;return{d,c:{x:rm*Math.cos(am),y:rm*Math.sin(am)},box:[-240,-240,480,480]}}
+function toPlate(x,y){const r=plateSvg.getBoundingClientRect(),k=600/r.width;return{x:(x-(r.left+r.width/2))*k,y:(y-(r.top+r.height/2))*k}}
+const centre=e=>{const r=e.getBoundingClientRect();return[r.left+r.width/2,r.top+r.height/2]};
+let plate={};const history=[];let lastAdded=null;
+function commit(next,msg){history.push({...plate});plate=next;renderPlate(msg)}
+const tubsEl=$('#tubs');
+FOODS.forEach(f=>{const b=document.createElement('button');b.className='tub';b.dataset.id=f.id;b.setAttribute('aria-pressed','false');
+  b.innerHTML=`<span class="thumb" style="background-image:url('${IMG(f.img).replace('w=600&h=600','w=160&h=160')}')"></span><span class="tag"><span>${f.name}</span><span>${f.k}</span></span>`;
+  b.onclick=()=>toggleFood(f);tubsEl.appendChild(b)});
+function toggleFood(f){const next={...plate};
+  if(f.id in next){delete next[f.id];lastAdded=null;return commit(next,`${f.name} removed.`)}
+  const used=Object.values(next);if(used.length>=7){$(`.tub[data-id="${f.id}"]`).animate([{transform:'translateX(0)'},{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'none'}],{duration:320});return setPill('Your bowl is full.')}
+  next[f.id]=[0,1,2,3,4,5,6].find(s=>!used.includes(s));lastAdded=f.id;commit(next,`${f.name} added. +${f.k} kcal`)}
+/* height is scale: rises toward the camera mid-flight, lands a touch small, settles */
+function flyIn(g,from,to){if(reduce)return;const dx=from.x-to.x,dy=from.y-to.y;
+  g.animate([{transform:`translate(${dx}px,${dy}px) scale(.35)`,opacity:0},{transform:`translate(${dx*.42}px,${dy*.42-40}px) scale(1.12)`,opacity:1,offset:.5},
+    {transform:'translate(0,0) scale(.96)',offset:.8},{transform:'translate(0,0) scale(1)'}],{duration:660,easing:EASE,fill:'backwards'})}
+function flyHome(g,home,c){if(reduce)return Promise.resolve();return g.animate([{transform:'none',opacity:1},{transform:`translate(${home.x-c.x}px,${home.y-c.y}px) scale(.3)`,opacity:0}],{duration:420,easing:'ease-in',fill:'forwards'}).finished}
+let shownK=0,clipN=0;
+function renderPlate(msg){
+  for(const g of [...piecesG.children]){if(g.dataset.id in plate||g.dataset.leaving)continue;g.dataset.leaving=1;
+    flyHome(g,toPlate(...centre($(`.tub[data-id="${g.dataset.id}"]`))),g._c).then(()=>g.remove())}
+  for(const [id,slot] of Object.entries(plate)){if(piecesG.querySelector(`[data-id="${id}"]:not([data-leaving])`))continue;const f=FOODS.find(x=>x.id===id);
+    const sh=slotShape(slot),cid='w'+(++clipN);const g=el('g',{'data-id':id},piecesG);g._c=sh.c;
+    const cp=el('clipPath',{id:cid},g);el('path',{d:sh.d},cp);
+    const [bx,by,bw,bh]=slot===6?sh.box:[sh.c.x-130,sh.c.y-130,260,260];
+    el('image',{href:IMG(f.img),x:bx,y:by,width:bw,height:bh,preserveAspectRatio:'xMidYMid slice','clip-path':`url(#${cid})`},g);
+    el('path',{d:sh.d,fill:'none',stroke:'rgba(255,255,255,.75)','stroke-width':4,'stroke-linejoin':'round'},g);
+    g.style.transformBox='fill-box';g.style.transformOrigin='center';g.style.filter='drop-shadow(0 6px 8px rgba(0,0,0,.28))';
+    flyIn(g,toPlate(...centre($(`.tub[data-id="${id}"]`))),sh.c)}
+  const list=Object.keys(plate).map(id=>FOODS.find(f=>f.id===id));
+  $$('.tub').forEach(t=>{const on=t.dataset.id in plate,f=FOODS.find(x=>x.id===t.dataset.id);t.setAttribute('aria-pressed',on);t.setAttribute('aria-label',`${f.name}, ${f.k} kcal${on?', in your bowl':''}`)});
+  const ul=$('#logList');ul.innerHTML=`<li><span>${BASE.name}</span><span>${BASE.k}</span></li>`+list.map(f=>`<li class="${f.id===lastAdded?'new':''}"><span>${f.name}</span><span>${f.k}</span></li>`).join('');
+  const t=[BASE,...list].reduce((a,f)=>({k:a.k+f.k,p:a.p+f.p,c:a.c+f.c,f:a.f+f.f}),{k:0,p:0,c:0,f:0});
+  const from=shownK;shownK=t.k;const t0=performance.now();(function step(n){const p=reduce?1:clamp((n-t0)/700);$('#logTotal').textContent=fmt(from+(t.k-from)*(1-Math.pow(1-p,3)))+' kcal';if(p<1)requestAnimationFrame(step)})(t0);
+  $('#targetFg').style.strokeDashoffset=301.6*(1-clamp(t.k/GOAL));$('#target').classList.toggle('over',t.k>GOAL);
+  [['p',45],['c',75],['f',25]].forEach(([k,max])=>{$('#b'+k).style.width=clamp(t[k]/max)*100+'%';$('#t'+k).textContent=t[k]+' g'});
+  $('#undo').disabled=!history.length;setPill(msg)}
+let pillT;
+function hint(){const ids=Object.keys(plate),k=BASE.k+ids.reduce((a,id)=>a+FOODS.find(f=>f.id===id).k,0);
+  if(!ids.length)return'Start with a protein. Tap a topping.';
+  if(k>GOAL)return`${fmt(k-GOAL)} over. Swap something for cucumber?`;
+  if(!ids.some(id=>['chicken','chickpeas'].includes(id)))return"Don't forget some protein.";
+  if(!ids.some(id=>['tomato','cucumber','corn','avocado'].includes(id)))return'Add some veg?';
+  if(k>GOAL*.85)return'Right on target. Nicely done.';
+  return`${fmt(GOAL-k)} kcal to go.`}
+function setPill(msg){clearTimeout(pillT);$('#pill').textContent=msg||hint();if(msg)pillT=setTimeout(()=>$('#pill').textContent=hint(),1900)}
+$('#undo').onclick=()=>{if(!history.length)return;plate=history.pop();lastAdded=null;renderPlate('Undone.')};
+$('#plate').addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key==='z'&&history.length){e.preventDefault();$('#undo').click()}});
+renderPlate();
+
+/* ---------- PROGRESS chart: draws on enter ---------- */
+const W=[74,73.9,73.6,73.2,73.0,72.9,72.8,72.8,72.4,72.0,71.9,71.8,71.8,71.4,71.0,70.9,70.8,70.8,70.5,70.2,69.8];
+const yOf=v=>40+(74-v)*45;const pts=W.map((v,i)=>[i*(940/(W.length-1)),yOf(v)]);
+const dLine=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+$('#line').setAttribute('d',dLine);$('#area').setAttribute('d',dLine+` L940 340 L0 340Z`);
+const chart=$('#chart');const lineEl=$('#line');const L=lineEl.getTotalLength();lineEl.style.strokeDasharray=L;lineEl.style.strokeDashoffset=reduce?0:L;
+const cio=new IntersectionObserver(es=>{if(!es[0].isIntersecting)return;cio.disconnect();chart.classList.add('in');
+  const t0=performance.now(),dur=reduce?1:2200;const tip=$('#tip');tip.setAttribute('opacity',1);
+  (function f(n){const p=clamp((n-t0)/dur),e=1-Math.pow(1-p,3);lineEl.style.strokeDashoffset=L*(1-e);const pt=lineEl.getPointAtLength(L*e);tip.setAttribute('transform',`translate(${pt.x} ${pt.y})`);
+    const v=74-(pt.y-40)/45;$('#wNow').textContent=v.toFixed(1);$('#wDown').textContent=(74-v).toFixed(1);if(p<1)requestAnimationFrame(f)})(t0)},{threshold:.4});
+cio.observe(chart);
+
+/* ---------- scroll loop ---------- */
+let ticking=false;
+function onScroll(){if(ticking)return;ticking=true;requestAnimationFrame(()=>{scanUpdate();navTheme();ticking=false})}
+addEventListener('scroll',onScroll,{passive:true});addEventListener('resize',onScroll);scanUpdate();navTheme();
+</script>
+</body>
+</html>

@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Motion Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07080a; --fg:#f2f2f0; --muted:#8a8d93; --line:rgba(255,255,255,.08);
+  --glass:rgba(255,255,255,.06); --accent:#c8ff5a; --accent2:#7a5cff;
+  --serif:"Instrument Serif",Georgia,serif; --sans:"Instrument Sans",system-ui,sans-serif; --mono:"Space Mono",monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+section{position:relative;padding:120px 6vw;border-top:1px solid var(--line)}
+.tag{font:12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:18px;display:flex;gap:10px;align-items:center}
+.tag b{color:var(--accent);font-weight:400}
+h2{font:400 clamp(36px,5vw,72px)/1 var(--serif);letter-spacing:-.01em;margin-bottom:14px}
+h2 i{color:var(--muted)}
+.lead{color:var(--muted);max-width:560px;line-height:1.6;margin-bottom:56px}
+
+/* ---------- 1. HERO: mesh gradient + text behind object + focus reveal ---------- */
+.hero{min-height:100vh;display:grid;place-items:center;overflow:hidden;padding:0;border:0}
+.mesh{position:absolute;inset:-20%;filter:blur(80px) saturate(140%);opacity:.75}
+.mesh span{position:absolute;width:45vw;height:45vw;border-radius:50%;mix-blend-mode:screen;animation:drift 18s var(--ease) infinite alternate}
+.mesh span:nth-child(1){background:#3b2bff;left:5%;top:10%}
+.mesh span:nth-child(2){background:#00c2a8;right:5%;top:20%;animation-duration:22s;animation-delay:-6s}
+.mesh span:nth-child(3){background:#ff4d8d;left:30%;bottom:0;animation-duration:26s;animation-delay:-12s}
+@keyframes drift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(8vw,-6vh) scale(1.2)}100%{transform:translate(-6vw,8vh) scale(.9)}}
+.grain{position:absolute;inset:0;opacity:.08;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.marquee{position:absolute;top:50%;left:0;transform:translateY(-55%);white-space:nowrap;font:400 26vw/1 var(--serif);font-style:italic;color:var(--fg);opacity:.92;z-index:1;pointer-events:none}
+.marquee .track{display:inline-block;animation:run 28s linear infinite}
+@keyframes run{to{transform:translateX(-50%)}}
+.orb{position:relative;z-index:2;width:min(46vw,440px);aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle at 32% 28%,#fff 0%,#d9d4ff 8%,#7a5cff 32%,#2a1a7a 62%,#07080a 100%);
+  box-shadow:0 60px 120px -20px rgba(122,92,255,.6),inset -30px -40px 80px rgba(0,0,0,.6);
+  animation:float 6s ease-in-out infinite;will-change:transform}
+.orb::after{content:"";position:absolute;inset:-14%;border-radius:50%;border:1px solid rgba(255,255,255,.25);transform:rotateX(72deg);animation:spin 12s linear infinite}
+@keyframes float{50%{transform:translateY(-18px)}}
+@keyframes spin{to{transform:rotateX(72deg) rotateZ(360deg)}}
+.hero-copy{position:absolute;left:6vw;bottom:9vh;z-index:3;max-width:520px}
+.focus{font:500 clamp(22px,2.4vw,34px)/1.2 var(--sans);letter-spacing:-.01em}
+.focus .w{display:inline-block;filter:blur(14px);opacity:0;transform:translateY(12px) scale(1.04);transition:all 1.1s var(--ease)}
+.focus.in .w{filter:blur(0);opacity:1;transform:none}
+.hero-nav{position:absolute;top:24px;left:6vw;right:6vw;display:flex;justify-content:space-between;z-index:4;font:13px var(--mono);color:var(--muted)}
+.pill{padding:10px 16px;border:1px solid var(--line);border-radius:99px;background:var(--glass);backdrop-filter:blur(14px)}
+
+/* ---------- 2. SHELF WAVE ---------- */
+.shelf{display:flex;align-items:flex-end;justify-content:center;gap:6px;height:340px;perspective:1200px;padding-bottom:20px;border-bottom:2px solid #2a2b30;cursor:none}
+.book{width:clamp(18px,2.4vw,34px);border-radius:3px 3px 1px 1px;transform-origin:bottom center;transition:transform .5s var(--ease),filter .5s;position:relative;box-shadow:inset 2px 0 0 rgba(255,255,255,.15),inset -3px 0 0 rgba(0,0,0,.3)}
+.book span{position:absolute;inset:14px 0;writing-mode:vertical-rl;transform:rotate(180deg);font:11px var(--mono);letter-spacing:.1em;display:grid;place-items:center;color:rgba(255,255,255,.75)}
+.book.pulled{transform:translateY(-120px) rotateY(-70deg) scale(1.15)!important;z-index:5}
+.cursor{position:fixed;width:46px;height:46px;border:1px solid var(--accent);border-radius:50%;pointer-events:none;z-index:99;transform:translate(-50%,-50%) scale(0);transition:transform .3s var(--ease);mix-blend-mode:difference}
+.cursor.on{transform:translate(-50%,-50%) scale(1)}
+
+/* ---------- 3. TURNTABLE ---------- */
+.turn{position:relative;height:460px;perspective:1400px;transition:background 1s}
+.turn-stage{position:absolute;inset:0;transform-style:preserve-3d}
+.city{position:absolute;left:50%;top:50%;width:260px;height:320px;margin:-160px 0 0 -130px;border-radius:24px;transition:all 1s var(--ease);display:flex;flex-direction:column;justify-content:flex-end;padding:22px;overflow:hidden;cursor:pointer;border:1px solid rgba(255,255,255,.12)}
+.city h3{font:400 40px/1 var(--serif)}
+.city small{font:11px var(--mono);opacity:.7;letter-spacing:.1em}
+.city .sky{position:absolute;inset:0;z-index:-1}
+.city .bld{position:absolute;bottom:0;left:0;right:0;height:55%;z-index:-1;background:
+  linear-gradient(transparent 0 0) , repeating-linear-gradient(90deg,rgba(0,0,0,.45) 0 28px,rgba(0,0,0,.25) 28px 46px,transparent 46px 60px);
+  -webkit-mask:linear-gradient(to top,#000 70%,transparent);clip-path:polygon(0 40%,10% 40%,10% 10%,22% 10%,22% 50%,35% 50%,35% 0,46% 0,46% 35%,60% 35%,60% 18%,72% 18%,72% 45%,85% 45%,85% 25%,100% 25%,100% 100%,0 100%)}
+.turn-ctrl{position:absolute;bottom:0;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:10}
+.btn{font:13px var(--mono);color:var(--fg);background:var(--glass);border:1px solid var(--line);padding:12px 18px;border-radius:99px;cursor:pointer;backdrop-filter:blur(10px);transition:background .3s}
+.btn:hover{background:rgba(255,255,255,.14)}
+
+/* ---------- 4. GLASS DATA CARDS ---------- */
+.glass-stage{position:relative;height:480px;border-radius:28px;overflow:hidden;background:linear-gradient(160deg,#dfe9ff,#b9cdf5 60%,#9db6ee);display:grid;place-items:center;color:#0b1430}
+.heart{width:200px;height:200px;background:radial-gradient(circle at 35% 30%,#ff8fa3,#e0244a 55%,#7a0a22);transform:rotate(-45deg);border-radius:0 0 0 0;position:relative;animation:beat 1.1s infinite;filter:drop-shadow(0 30px 40px rgba(224,36,74,.45))}
+.heart::before,.heart::after{content:"";position:absolute;width:200px;height:200px;border-radius:50%;background:inherit}
+.heart::before{top:-100px;left:0}.heart::after{left:100px;top:0}
+@keyframes beat{0%,100%{transform:rotate(-45deg) scale(.62)}15%{transform:rotate(-45deg) scale(.72)}30%{transform:rotate(-45deg) scale(.64)}45%{transform:rotate(-45deg) scale(.7)}}
+.gcard{position:absolute;padding:18px 20px;border-radius:18px;background:rgba(255,255,255,.35);border:1px solid rgba(255,255,255,.6);backdrop-filter:blur(18px) saturate(160%);box-shadow:0 20px 50px -20px rgba(20,40,100,.4);transition:transform .25s ease-out;min-width:170px}
+.gcard small{font:11px var(--mono);letter-spacing:.08em;opacity:.6;text-transform:uppercase}
+.gcard .num{font:500 40px/1.1 var(--sans);letter-spacing:-.02em}
+.gcard svg path{stroke-dasharray:400;stroke-dashoffset:400;transition:stroke-dashoffset 2.2s var(--ease)}
+.gcard.in svg path{stroke-dashoffset:0}
+.g1{left:8%;top:14%}.g2{right:8%;top:20%}.g3{left:14%;bottom:12%}.g4{right:12%;bottom:14%}
+
+/* ---------- 5. 3D RING ---------- */
+.ring-wrap{height:420px;perspective:1600px;display:grid;place-items:center}
+.ring{width:200px;height:260px;position:relative;transform-style:preserve-3d;animation:ring 30s linear infinite}
+.ring-wrap:hover .ring{animation-play-state:paused}
+.ring .it{position:absolute;inset:0;border-radius:18px;display:grid;place-items:end start;padding:16px;font:400 28px var(--serif);border:1px solid rgba(255,255,255,.15);backface-visibility:hidden}
+@keyframes ring{to{transform:rotateY(-360deg)}}
+
+/* ---------- 6. PINNED PARALLAX + SCROLL ECLIPSE ---------- */
+.pin{height:300vh;padding:0}
+.pin-inner{position:sticky;top:0;height:100vh;overflow:hidden;display:grid;place-items:center}
+.layer{position:absolute;left:-10%;right:-10%;will-change:transform}
+.l-sky{inset:0;background:radial-gradient(ellipse at 50% 120%,#3a1c2e,#0c0a14 60%)}
+.stars{inset:0;background-image:radial-gradient(1px 1px at 20% 30%,#fff,transparent),radial-gradient(1px 1px at 70% 20%,#fff,transparent),radial-gradient(1.5px 1.5px at 40% 60%,#fff,transparent),radial-gradient(1px 1px at 85% 55%,#fff,transparent),radial-gradient(1px 1px at 10% 70%,#fff,transparent),radial-gradient(1px 1px at 55% 10%,#fff,transparent);background-size:400px 400px;opacity:.7}
+.moon{position:absolute;width:240px;height:240px;border-radius:50%;top:18%;left:50%;margin-left:-120px;background:radial-gradient(circle at 40% 35%,#fff8e8,#e8d9b8 50%,#b6a37f);box-shadow:0 0 100px 20px rgba(255,240,200,.25);overflow:hidden}
+.moon .shadow{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 50% 50%,rgba(120,20,10,.0),rgba(60,5,0,.0));transition:none}
+.dune{height:50%;bottom:0;border-radius:50% 50% 0 0}
+.d1{background:#4a2333;bottom:-8%;height:45%}
+.d2{background:#30172a;bottom:-18%;height:42%;left:-30%;right:20%}
+.d3{background:#1a0d18;bottom:-26%;height:40%;left:10%;right:-40%}
+.pin-copy{position:absolute;bottom:10vh;left:6vw;z-index:5}
+.pin-copy .big{font:400 clamp(48px,8vw,120px)/.9 var(--serif)}
+.pin-copy .data{font:12px var(--mono);color:var(--muted);margin-top:14px;letter-spacing:.1em}
+
+/* ---------- 7. FLICK STACK ---------- */
+.stack{position:relative;width:300px;height:380px;margin:0 auto}
+.card{position:absolute;inset:0;border-radius:24px;padding:26px;display:flex;flex-direction:column;justify-content:space-between;transition:transform .6s var(--ease),opacity .6s;cursor:grab;user-select:none;touch-action:none;box-shadow:0 30px 60px -30px rgba(0,0,0,.8)}
+.card h4{font:400 46px/1 var(--serif)}
+.card p{font:12px var(--mono);opacity:.75}
+
+/* ---------- 8. PARTICLES + GLOW BUTTON ---------- */
+.particles{height:420px;border-radius:28px;background:#e8b730;position:relative;overflow:hidden;display:grid;place-items:center}
+.particles canvas{position:absolute;inset:0;width:100%;height:100%}
+.particles h3{position:relative;font:800 clamp(56px,10vw,140px)/.85 var(--sans);letter-spacing:-.05em;color:#1d1405;text-align:center}
+.glow{position:relative;margin-top:28px;padding:16px 30px;border-radius:99px;background:#111;color:#fff;font:500 15px var(--sans);border:0;cursor:pointer;isolation:isolate}
+.glow::before{content:"";position:absolute;inset:-2px;border-radius:inherit;z-index:-1;background:conic-gradient(from var(--a),#ff4d8d,#c8ff5a,#00c2a8,#7a5cff,#ff4d8d);animation:rot 3s linear infinite;filter:blur(6px)}
+.glow::after{content:"";position:absolute;inset:1px;border-radius:inherit;background:#111;z-index:-1}
+@property --a{syntax:"<angle>";inherits:false;initial-value:0deg}
+@keyframes rot{to{--a:360deg}}
+
+/* reveal on scroll */
+.rv{opacity:0;transform:translateY(40px);transition:all 1s var(--ease)}
+.rv.in{opacity:1;transform:none}
+footer{padding:60px 6vw;color:var(--muted);font:12px var(--mono)}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+@media (max-width:700px){section{padding:90px 16px}.g3,.g4{display:none}.city{width:200px;height:260px;margin:-130px 0 0 -100px}}
+</style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+
+<!-- 1 HERO -->
+<section class="hero">
+  <div class="mesh"><span></span><span></span><span></span></div>
+  <div class="grain"></div>
+  <nav class="hero-nav"><span class="pill">● MOTION LAB</span><span class="pill">8 techniques · pure HTML/CSS/JS</span></nav>
+  <div class="marquee"><div class="track">Motion that lands — Motion that lands — Motion that lands — Motion that lands — </div></div>
+  <div class="orb" id="orb"></div>
+  <div class="hero-copy">
+    <div class="tag"><b>01</b> mesh gradient · text behind object · focus reveal</div>
+    <p class="focus" id="focus">Type that pulls itself into focus while the name runs behind the object.</p>
+  </div>
+</section>
+
+<!-- 2 SHELF -->
+<section>
+  <div class="tag rv"><b>02</b> cursor wave · 3D pull-out</div>
+  <h2 class="rv">A shelf that <i>leans toward you</i></h2>
+  <p class="lead rv">Each spine rises by its distance to the cursor (a Gaussian falloff). Click one and it slides off the shelf in 3D.</p>
+  <div class="shelf" id="shelf"></div>
+</section>
+
+<!-- 3 TURNTABLE -->
+<section id="turnSec">
+  <div class="tag rv"><b>03</b> turntable carousel · depth blur · theme repaint</div>
+  <h2 class="rv">Cities on a <i>turntable</i></h2>
+  <p class="lead rv">The front card is full size; the rest scale down and blur behind it. Each stop repaints the section background.</p>
+  <div class="turn"><div class="turn-stage" id="turn"></div>
+    <div class="turn-ctrl"><button class="btn" id="prev">← Prev</button><button class="btn" id="next">Next →</button></div></div>
+</section>
+
+<!-- 4 GLASS -->
+<section>
+  <div class="tag rv"><b>04</b> glassmorphism · count-up · chart draw · pointer parallax</div>
+  <h2 class="rv">Data that <i>floats</i></h2>
+  <p class="lead rv">Frosted cards count up and draw their lines when they scroll into view, then drift with your pointer at different depths.</p>
+  <div class="glass-stage" id="glass">
+    <div class="heart"></div>
+    <div class="gcard g1" data-d="18"><small>Resting HR</small><div class="num" data-to="62">0</div><small>bpm</small></div>
+    <div class="gcard g2" data-d="30"><small>Weekly load</small><svg width="150" height="50"><path d="M2 40 C20 10 35 45 55 25 S90 5 105 22 S135 40 148 8" fill="none" stroke="#e0244a" stroke-width="2.5"/></svg></div>
+    <div class="gcard g3" data-d="40"><small>Sleep score</small><div class="num" data-to="87">0</div></div>
+    <div class="gcard g4" data-d="24"><small>VO₂ max</small><div class="num" data-to="48">0</div><small>ml/kg/min</small></div>
+  </div>
+</section>
+
+<!-- 5 RING -->
+<section>
+  <div class="tag rv"><b>05</b> CSS 3D carousel ring</div>
+  <h2 class="rv">A ring that <i>keeps turning</i></h2>
+  <p class="lead rv">Pure CSS: each card is rotated around the Y axis and pushed out by the radius. Hover pauses it.</p>
+  <div class="ring-wrap"><div class="ring" id="ring"></div></div>
+</section>
+
+<!-- 6 PINNED PARALLAX -->
+<section class="pin" id="pin">
+  <div class="pin-inner">
+    <div class="layer l-sky"></div>
+    <div class="layer stars" data-s="0.05"></div>
+    <div class="moon" id="moon"><div class="shadow" id="mshadow"></div></div>
+    <div class="layer dune d1" data-s="0.15"></div>
+    <div class="layer dune d2" data-s="0.3"></div>
+    <div class="layer dune d3" data-s="0.5"></div>
+    <div class="pin-copy">
+      <div class="tag"><b>06</b> pinned stage · layered parallax · scroll-scrubbed eclipse</div>
+      <div class="big">Scroll the moon<br>into shadow</div>
+      <div class="data" id="mdata">ECLIPSE 0% · TOTALITY IN —</div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 STACK -->
+<section>
+  <div class="tag rv"><b>07</b> flick card stack · drag physics</div>
+  <h2 class="rv">Flick the <i>top card</i></h2>
+  <p class="lead rv">Drag and throw. Past a threshold the card flies off and goes to the back of the deck.</p>
+  <div class="stack" id="stack"></div>
+</section>
+
+<!-- 8 PARTICLES -->
+<section>
+  <div class="tag rv"><b>08</b> canvas particles · conic glow button</div>
+  <h2 class="rv">Crumbs that <i>keep falling</i></h2>
+  <p class="lead rv">A lightweight canvas loop with gravity, spin and drift. The button border is an animated conic gradient using @property.</p>
+  <div class="particles"><canvas id="crumbs"></canvas><div style="position:relative;text-align:center"><h3>STACK<br>IT UP</h3><button class="glow">Order now →</button></div></div>
+</section>
+
+<footer>Motion Lab — original implementation. No external libraries.</footer>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+/* 1 focus reveal: split words, stagger */
+const f=$('#focus'); f.innerHTML=f.textContent.split(' ').map((w,i)=>`<span class="w" style="transition-delay:${i*70}ms">${w}</span>`).join(' ');
+setTimeout(()=>f.classList.add('in'),300);
+/* orb follows pointer slightly */
+addEventListener('pointermove',e=>{const x=(e.clientX/innerWidth-.5),y=(e.clientY/innerHeight-.5);$('#orb').style.translate=`${x*30}px ${y*30}px`});
+
+/* scroll reveal */
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.2});
+$$('.rv').forEach(el=>io.observe(el));
+
+/* 2 shelf */
+const titles=['ATLAS','DUNE','ECHO','FERN','GLASS','HALO','IRIS','JADE','KITE','LUNA','MOSS','NOVA','OPAL','PINE','QUILL','REED','SAGE','TIDE','UMBER','VALE','WREN','YARROW','ZEN','ASH'];
+const pal=['#c0392b','#1f3a5f','#e0a526','#2e5e4e','#6b3fa0','#d35400','#34495e','#8e6c3a','#16a085','#b03a5b','#3d5a80','#7f8c8d'];
+const shelf=$('#shelf');
+titles.forEach((t,i)=>{const b=document.createElement('div');b.className='book';b.style.height=(180+((i*37)%70))+'px';b.style.background=`linear-gradient(90deg,${pal[i%pal.length]},color-mix(in srgb,${pal[i%pal.length]} 70%,#000))`;b.innerHTML=`<span>${t}</span>`;b.onclick=()=>{$$('.book.pulled').forEach(x=>x!==b&&x.classList.remove('pulled'));b.classList.toggle('pulled')};shelf.appendChild(b)});
+const cur=$('#cursor');
+shelf.addEventListener('pointermove',e=>{cur.classList.add('on');cur.style.left=e.clientX+'px';cur.style.top=e.clientY+'px';
+  $$('.book').forEach(b=>{if(b.classList.contains('pulled'))return;const r=b.getBoundingClientRect();const d=(e.clientX-(r.left+r.width/2))/120;const lift=Math.exp(-d*d)*60;b.style.transform=`translateY(${-lift}px) rotateX(${lift/6}deg)`;b.style.filter=`brightness(${1+lift/150})`})});
+shelf.addEventListener('pointerleave',()=>{cur.classList.remove('on');$$('.book').forEach(b=>{if(!b.classList.contains('pulled')){b.style.transform='';b.style.filter=''}})});
+
+/* 3 turntable */
+const cities=[['Kyoto','35.0°N',['#ffb4a2','#6d597a'],'#2a1720'],['Reykjavík','64.1°N',['#a8dadc','#1d3557'],'#0d1a24'],['Marrakesh','31.6°N',['#f4a261','#9c3d1c'],'#24130a'],['Lisbon','38.7°N',['#ffd6a5','#3a86ff'],'#0d1530'],['Oaxaca','17.0°N',['#e76f51','#264653'],'#0f1d1f'],['Hanoi','21.0°N',['#b7e4c7','#1b4332'],'#0b1a12']];
+const stage=$('#turn');let idx=0;
+cities.forEach(([n,lat,g])=>{const c=document.createElement('div');c.className='city';c.innerHTML=`<div class="sky" style="background:linear-gradient(170deg,${g[0]},${g[1]})"></div><div class="bld"></div><small>${lat}</small><h3>${n}</h3>`;stage.appendChild(c)});
+const cs=$$('.city');
+function layout(){const N=cs.length;cs.forEach((c,i)=>{let k=((i-idx)%N+N)%N;if(k>N/2)k-=N;const a=k*(360/N);const rad=Math.PI*a/180;
+  const x=Math.sin(rad)*380,z=(Math.cos(rad)-1)*380;const s=k===0?1:.72;
+  c.style.transform=`translate3d(${x}px,0,${z}px) scale(${s})`;c.style.filter=k===0?'none':`blur(${Math.min(Math.abs(k)*2.5,7)}px) brightness(.7)`;c.style.zIndex=10-Math.abs(k);c.style.opacity=Math.abs(k)>2?0:1;c.onclick=()=>{idx=i;layout()}});
+  $('#turnSec').style.background=`radial-gradient(ellipse at 50% 70%,${cities[idx][3]},var(--bg) 70%)`}
+$('#prev').onclick=()=>{idx=(idx-1+cs.length)%cs.length;layout()};$('#next').onclick=()=>{idx=(idx+1)%cs.length;layout()};layout();
+
+/* 4 glass: count-up + parallax */
+const gio=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;$$('.gcard').forEach((c,i)=>setTimeout(()=>c.classList.add('in'),i*150));
+  $$('.gcard .num').forEach(n=>{const to=+n.dataset.to,t0=performance.now();(function step(t){const p=Math.min((t-t0)/1600,1);n.textContent=Math.round(to*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(step)})(t0)});gio.disconnect()}),{threshold:.4});
+gio.observe($('#glass'));
+$('#glass').addEventListener('pointermove',e=>{const r=e.currentTarget.getBoundingClientRect();const x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;$$('.gcard').forEach(c=>{const d=+c.dataset.d;c.style.transform=`translate(${x*d}px,${y*d}px) rotateX(${-y*8}deg) rotateY(${x*8}deg)`})});
+
+/* 5 ring */
+const ring=$('#ring');const words=['Field','Notes','Motion','Log','Studio','Diary','Atlas','Kite','Ridge','Echo'];const R=420;
+words.forEach((w,i)=>{const d=document.createElement('div');d.className='it';d.textContent=w;d.style.background=`linear-gradient(160deg,hsl(${i*36} 70% 55%),hsl(${i*36+40} 60% 22%))`;d.style.transform=`rotateY(${i*360/words.length}deg) translateZ(${R}px)`;ring.appendChild(d)});
+
+/* 6 pinned parallax + eclipse */
+const pin=$('#pin'),moon=$('#moon'),ms=$('#mshadow'),md=$('#mdata');
+function onScroll(){const r=pin.getBoundingClientRect();const p=Math.min(Math.max(-r.top/(r.height-innerHeight),0),1);
+  $$('#pin .layer[data-s]').forEach(l=>l.style.transform=`translateY(${-p*400*l.dataset.s}px)`);
+  moon.style.transform=`translateY(${p*80}px)`;
+  const e=Math.min(p*1.4,1);ms.style.background=`radial-gradient(circle at ${130-e*80}% 50%,rgba(40,4,0,0) ${Math.max(0,60-e*60)}%,rgba(120,20,8,${.85*e}) ${Math.max(10,70-e*60)}%)`;
+  moon.style.boxShadow=`0 0 ${100-e*40}px ${20-e*10}px rgba(${255},${240-e*180},${200-e*190},${.25+e*.2})`;
+  md.textContent=`ECLIPSE ${Math.round(e*100)}% · ${e>=1?'TOTALITY':'TOTALITY IN '+Math.round((1-e)*74)+' MIN'}`}
+addEventListener('scroll',onScroll,{passive:true});onScroll();
+
+/* 7 flick stack */
+const deck=[['Case study','↗','#ff6b4a'],['Brand film','→','#7a5cff'],['Product tour','↘','#00c2a8'],['Field notes','✳','#e8b730']];
+const st=$('#stack');
+deck.forEach(([t,a,c])=>{const d=document.createElement('div');d.className='card';d.style.background=c;d.innerHTML=`<p>${a} ISSUE</p><h4>${t}</h4><p>Drag me</p>`;st.appendChild(d)});
+function stackLayout(){[...st.children].forEach((c,i,arr)=>{const k=arr.length-1-i;c.style.transform=`translateY(${k*-14}px) scale(${1-k*.05}) rotate(${k%2?2:-2}deg)`;c.style.zIndex=i})}
+stackLayout();
+let drag=null;
+st.addEventListener('pointerdown',e=>{const top=st.lastElementChild;if(e.target.closest('.card')!==top)return;drag={el:top,x:e.clientX,y:e.clientY};top.style.transition='none';top.setPointerCapture(e.pointerId)});
+st.addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.dx=dx;drag.el.style.transform=`translate(${dx}px,${dy}px) rotate(${dx/12}deg)`});
+st.addEventListener('pointerup',()=>{if(!drag)return;const {el,dx=0}=drag;el.style.transition='';if(Math.abs(dx)>110){el.style.transform=`translate(${Math.sign(dx)*600}px,-60px) rotate(${Math.sign(dx)*40}deg)`;el.style.opacity=0;setTimeout(()=>{st.prepend(el);el.style.opacity=1;stackLayout()},450)}else stackLayout();drag=null});
+
+/* 8 particles */
+const cv=$('#crumbs'),cx=cv.getContext('2d');let P=[];
+function size(){const r=cv.getBoundingClientRect(),dpr=devicePixelRatio||1;cv.width=r.width*dpr;cv.height=r.height*dpr;cx.setTransform(dpr,0,0,dpr,0,0)}size();addEventListener('resize',size);
+function spawn(){const w=cv.clientWidth;return{x:Math.random()*w,y:-10,vy:.5+Math.random()*1.5,vx:(Math.random()-.5)*.4,r:2+Math.random()*4,a:Math.random()*6,va:(Math.random()-.5)*.1,c:['#7a4a12','#a8682a','#f2d27a','#5a3510'][Math.random()*4|0]}}
+for(let i=0;i<90;i++){const p=spawn();p.y=Math.random()*cv.clientHeight;P.push(p)}
+(function loop(){cx.clearRect(0,0,cv.clientWidth,cv.clientHeight);P.forEach((p,i)=>{p.vy+=.01;p.x+=p.vx;p.y+=p.vy;p.a+=p.va;if(p.y>cv.clientHeight+10)P[i]=spawn();cx.save();cx.translate(p.x,p.y);cx.rotate(p.a);cx.fillStyle=p.c;cx.beginPath();cx.moveTo(-p.r,-p.r*.6);cx.lineTo(p.r,-p.r*.3);cx.lineTo(p.r*.6,p.r);cx.lineTo(-p.r*.8,p.r*.5);cx.fill();cx.restore()});if(!reduce)requestAnimationFrame(loop)})();
+</script>
+</body>
+</html>
